@@ -48,9 +48,12 @@ async def create_invoice(
     
     await db.commit()
     
-    # Reload with items
+    # Reload with items and client
     result = await db.execute(
-        select(Invoice).options(selectinload(Invoice.items)).where(Invoice.id == new_invoice.id)
+        select(Invoice).options(
+            selectinload(Invoice.items),
+            selectinload(Invoice.client)
+        ).where(Invoice.id == new_invoice.id)
     )
     return result.scalar_one()
 
@@ -60,7 +63,10 @@ async def list_invoices(
     current_user: User = Depends(get_current_user)
 ):
     result = await db.execute(
-        select(Invoice).options(selectinload(Invoice.items)).where(Invoice.user_id == current_user.id)
+        select(Invoice).options(
+            selectinload(Invoice.items),
+            selectinload(Invoice.client)
+        ).where(Invoice.user_id == current_user.id)
     )
     return result.scalars().all()
 
@@ -71,7 +77,10 @@ async def get_invoice(
     current_user: User = Depends(get_current_user)
 ):
     result = await db.execute(
-        select(Invoice).options(selectinload(Invoice.items)).where(
+        select(Invoice).options(
+            selectinload(Invoice.items),
+            selectinload(Invoice.client)
+        ).where(
             and_(Invoice.id == invoice_id, Invoice.user_id == current_user.id)
         )
     )
@@ -97,8 +106,11 @@ async def update_invoice_status(
     invoice.status = status_in
     await db.commit()
     
-    # Reload with items
+    # Reload with items and client
     result = await db.execute(
-        select(Invoice).options(selectinload(Invoice.items)).where(Invoice.id == invoice_id)
+        select(Invoice).options(
+            selectinload(Invoice.items),
+            selectinload(Invoice.client)
+        ).where(Invoice.id == invoice_id)
     )
     return result.scalar_one()

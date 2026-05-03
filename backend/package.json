@@ -1,0 +1,15 @@
+{
+  "name": "invoice-generator-backend",
+  "version": "1.0.0",
+  "description": "FastAPI backend for Invoice Generator",
+  "main": "app/main.py",
+  "scripts": {
+    "dev": ".venv\\Scripts\\python -m uvicorn app.main:app --reload",
+    "start": ".venv\\Scripts\\python -m uvicorn app.main:app",
+    "install-py": ".venv\\Scripts\\python -m pip install -r requirements.txt",
+    "init-db": ".venv\\Scripts\\python init_db.py"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

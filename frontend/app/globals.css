@@ -46,3 +46,52 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* ── Landing Page Styles ── */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.hero-bg {
+  background:
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.06), transparent 60%),
+    radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.05), transparent 60%);
+}
+
+.floating-card {
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.10);
+  border: 1px solid #E2E8F0;
+}
+
+.floating-card-lg {
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.14);
+  border: 1px solid #E2E8F0;
+}
+
+.sora {
+  font-family: 'Sora', sans-serif;
+}
+
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -12px rgba(37, 99, 235, 0.15);
+}
+
+.plan-popular {
+  border: 2px solid #2563EB;
+}
+
+@keyframes growUp {
+  from { height: 0; }
+  to   { height: var(--h); }
+}
+
+.bar-animate {
+  animation: growUp 1s ease-out forwards;
+}

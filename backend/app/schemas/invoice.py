@@ -3,6 +3,7 @@ from datetime import datetime, date
 from uuid import UUID
 from typing import List, Optional
 from ..models.invoice import InvoiceStatus, DiscountType
+from .client import ClientOut
 
 class InvoiceItemBase(BaseModel):
     description: str
@@ -52,5 +53,6 @@ class InvoiceOut(InvoiceBase):
     pdf_url: Optional[str] = None
     created_at: datetime
     items: List[InvoiceItemOut]
+    client: Optional[ClientOut] = None
 
     model_config = ConfigDict(from_attributes=True)

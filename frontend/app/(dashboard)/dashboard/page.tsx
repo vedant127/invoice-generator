@@ -1,78 +1,114 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "@/lib/api";
-import { 
-  TrendingUp, 
-  TrendingDown, 
-  Users, 
-  FileText, 
-  DollarSign, 
-  MoreHorizontal,
-  ChevronRight,
-  PlusCircle,
-  Download
-} from "lucide-react";
+import Link from "next/link";
+import BillingOverview from "@/components/dashboard/BillingOverview";
+
+// ─── Smooth SVG path helper ───────────────────────────────────────────────────
+const getSmoothPath = (points: { x: number; y: number }[]) => {
+  if (points.length < 2) return "";
+  let d = `M ${points[0].x},${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const curr = points[i];
+    const next = points[i + 1];
+    const cp1x = curr.x + (next.x - curr.x) / 3;
+    const cp2x = curr.x + (2 * (next.x - curr.x)) / 3;
+    d += ` C ${cp1x},${curr.y} ${cp2x},${next.y} ${next.x},${next.y}`;
+  }
+  return d;
+};
+
+// ─── Fallback demo data when API has no invoices yet ─────────────────────────
+// 12 months of demo data (used for both 6-month and 12-month / This Year views)
+const DEMO_MONTHLY_DATA_12 = [5000, 8000, 13500, 12800, 11000, 15200, 19200, 22000, 21000, 23600, 26000, 28430];
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState<"6m" | "year" | "3m">("6m");
+  const [recentPayments, setRecentPayments] = useState<any[]>([]);
+  const [topClients, setTopClients] = useState<any[]>([]);
   const [stats, setStats] = useState({
-    total_revenue: 128430.00,
-    total_invoices: 1248,
-    active_clients: 84,
-    revenue_growth: "+12.5%",
-    invoice_pending: "42 Pending",
-    client_growth: "+4 new"
+    total_revenue: 0,
+    total_invoices: 0,
+    paid_invoices: 0,
+    overdue_invoices: 0,
+    sent_invoices: 0,
+    draft_invoices: 0,
+    revenue_growth: "+12%",
   });
 
-  const [recentPayments, setRecentPayments] = useState([
-    { id: "PAY-89241", client: "Fleurish Creative", clientInitials: "FC", invoice: "TSN-904824", date: "Jun 24, 2025", amount: 3685.00, status: "Success" },
-    { id: "PAY-89242", client: "Design Studio Inc", clientInitials: "DS", invoice: "TSN-904825", date: "Jun 23, 2025", amount: 1200.00, status: "Pending" },
-    { id: "PAY-89243", client: "Motion Spark", clientInitials: "MS", invoice: "TSN-904826", date: "Jun 22, 2025", amount: 5400.00, status: "Success" }
-  ]);
-
-  const [topClients, setTopClients] = useState([
-    { name: "Fleurish Creative", email: "hello@fleurish.com", initials: "FC", amount: 42500, color: "bg-primary/10 text-primary" },
-    { name: "Design Studio Inc", email: "contact@designstudio.io", initials: "DS", amount: 28900, color: "bg-orange-100 text-orange-600" },
-    { name: "Motion Spark", email: "hi@motionspark.com", initials: "MS", amount: 19200, color: "bg-purple-100 text-purple-600" }
-  ]);
+  const [tooltip, setTooltip] = useState<{
+    visible: boolean;
+    x: number;
+    y: number;
+    value: number;
+    label: string;
+  }>({ visible: false, x: 0, y: 0, value: 0, label: "" });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         const [invoicesRes, clientsRes] = await Promise.all([
           api.get("/api/v1/invoices/"),
-          api.get("/api/v1/clients/")
+          api.get("/api/v1/clients/"),
         ]);
 
         if (invoicesRes.data && Array.isArray(invoicesRes.data)) {
-          const totalRev = invoicesRes.data.reduce((acc: number, inv: any) => acc + (inv.total || 0), 0);
-          setStats(prev => ({
-            ...prev,
-            total_revenue: totalRev > 0 ? totalRev : prev.total_revenue,
-            total_invoices: invoicesRes.data.length > 0 ? invoicesRes.data.length : prev.total_invoices,
-            invoice_pending: `${invoicesRes.data.filter((i: any) => i.status === 'pending').length} Pending`
-          }));
+          const invs = invoicesRes.data;
+          setInvoices(invs);
 
-          // Map real invoices to the payments table for demonstration
-          if (invoicesRes.data.length > 0) {
-            const mapped = invoicesRes.data.slice(0, 5).map((inv: any, idx: number) => ({
-              id: `PAY-${90000 + idx}`,
-              client: inv.client_name || "Unknown Client",
-              clientInitials: (inv.client_name || "UC").split(' ').map((n:any) => n[0]).join('').toUpperCase(),
-              invoice: inv.invoice_number || `INV-${inv.id}`,
-              date: new Date(inv.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-              amount: inv.total || 0,
-              status: inv.status === 'paid' ? 'Success' : 'Pending'
-            }));
-            setRecentPayments(mapped);
-          }
-        }
+          const totalRev = invs.reduce(
+            (acc: number, inv: any) => acc + (inv.total_amount || inv.total || 0),
+            0
+          );
 
-        if (clientsRes.data && Array.isArray(clientsRes.data)) {
-          setStats(prev => ({
-            ...prev,
-            active_clients: clientsRes.data.length > 0 ? clientsRes.data.length : prev.active_clients
+          setStats({
+            total_revenue: totalRev,
+            total_invoices: invs.length,
+            paid_invoices: invs.filter((i: any) => i.status === "PAID").length,
+            overdue_invoices: invs.filter((i: any) => i.status === "OVERDUE").length,
+            sent_invoices: invs.filter((i: any) => i.status === "SENT" || i.status === "PENDING").length,
+            draft_invoices: invs.filter((i: any) => i.status === "DRAFT").length,
+            revenue_growth: "+12%",
+          });
+
+          const mapped = invs.slice(0, 4).map((inv: any, idx: number) => ({
+            id: `#INV-${4021 - idx}`,
+            client: inv.client?.name || "Unknown Client",
+            clientInitials: (inv.client?.name || "U").charAt(0),
+            date: new Date(inv.created_at || inv.issue_date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }),
+            amount: inv.total_amount || inv.total || 0,
+            status:
+              inv.status === "PAID" ? "Paid" :
+              inv.status === "OVERDUE" ? "Overdue" : "Pending",
           }));
+          setRecentPayments(mapped);
+
+          const clientRev: Record<string, {
+            name: string; amount: number; initials: string;
+            email: string; count: number; avatar?: string;
+          }> = {};
+          invs.forEach((inv: any) => {
+            const name = inv.client?.name || "Unknown";
+            if (!clientRev[name]) {
+              clientRev[name] = {
+                name, amount: 0, initials: name.charAt(0),
+                email: inv.client?.email || "no-email@client.com",
+                count: 0, avatar: inv.client?.avatar,
+              };
+            }
+            clientRev[name].amount += inv.total_amount || inv.total || 0;
+            clientRev[name].count += 1;
+          });
+
+          setTopClients(
+            Object.values(clientRev).sort((a, b) => b.amount - a.amount).slice(0, 3)
+          );
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -84,186 +120,379 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
+  const chartData = useMemo(() => {
+    const now = new Date();
+    const result = [];
+
+    let months: number;
+    let startDate: Date;
+
+    if (timeRange === "3m") {
+      months = 3;
+      startDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    } else if (timeRange === "year") {
+      // Jan → current month of current year
+      months = now.getMonth() + 1;
+      startDate = new Date(now.getFullYear(), 0, 1);
+    } else {
+      // Default: last 6 months
+      months = 6;
+      startDate = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    }
+
+    for (let i = 0; i < months; i++) {
+      const date = new Date(startDate.getFullYear(), startDate.getMonth() + i, 1);
+      const monthLabel = date.toLocaleString("en-US", { month: "short" }).toUpperCase();
+      const year = date.getFullYear();
+      const month = date.getMonth();
+
+      const monthlyTotal = invoices
+        .filter((inv) => {
+          const invDate = new Date(inv.created_at || inv.issue_date);
+          return invDate.getFullYear() === year && invDate.getMonth() === month;
+        })
+        .reduce((sum, inv) => sum + (inv.total_amount || inv.total || 0), 0);
+
+      result.push({ label: monthLabel, value: monthlyTotal });
+    }
+
+    // If no real data, fall back to demo values sliced to the right length
+    const hasRealData = result.some((d) => d.value > 0);
+    if (!hasRealData) {
+      const demoSlice = DEMO_MONTHLY_DATA_12.slice(-months);
+      return result.map((d, i) => ({ label: d.label, value: demoSlice[i] ?? 0 }));
+    }
+
+    return result;
+  }, [invoices, timeRange]);
+
+  const maxRevenue = Math.max(...chartData.map((d) => d.value), 1);
+  const yMax = Math.ceil(maxRevenue / 10000) * 10000;
+  const SVG_W = 900;
+  const SVG_H = 240;
+
+  const chartPoints = useMemo(() => {
+    if (chartData.length === 0) return { area: "", line: "", points: [] };
+
+    const points = chartData.map((d, i) => ({
+      x: (i / (chartData.length - 1)) * SVG_W,
+      y: SVG_H - (d.value / yMax) * SVG_H,
+      value: d.value,
+      label: d.label,
+    }));
+
+    const linePath = getSmoothPath(points);
+    const areaPath = `${linePath} L ${points[points.length - 1].x},${SVG_H} L ${points[0].x},${SVG_H} Z`;
+
+    return { area: areaPath, line: linePath, points };
+  }, [chartData, yMax]);
+
+  const yTicks = [yMax, yMax * 0.75, yMax * 0.5, yMax * 0.25, 0];
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
-      {/* Metric Cards */}
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-blue-50 text-primary rounded-xl group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined">payments</span>
-            </div>
-            <span className="text-xs font-black text-green-600 bg-green-50 px-3 py-1 rounded-full">{stats.revenue_growth}</span>
-          </div>
-          <p className="text-sm text-on-surface-variant font-bold uppercase tracking-widest">Total Revenue</p>
-          <h3 className="text-3xl font-black mt-1 text-on-surface tracking-tighter">
-            ${stats.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-          </h3>
-          <p className="text-xs text-on-surface-variant mt-2 font-medium">vs. $114,200 last month</p>
-        </div>
+    <div className="flex-1 overflow-y-auto p-8 lg:px-12 xl:px-16 pb-24 bg-[#F8F9FB] animate-in fade-in duration-700 font-sans">
+      <div className="max-w-[1400px] mx-auto space-y-10">
 
-        <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-orange-50 text-orange-600 rounded-xl group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined">description</span>
-            </div>
-            <span className="text-xs font-black text-on-surface-variant bg-surface-container px-3 py-1 rounded-full uppercase tracking-wider">{stats.invoice_pending}</span>
-          </div>
-          <p className="text-sm text-on-surface-variant font-bold uppercase tracking-widest">Total Invoices</p>
-          <h3 className="text-3xl font-black mt-1 text-on-surface tracking-tighter">{stats.total_invoices.toLocaleString()}</h3>
-          <p className="text-xs text-on-surface-variant mt-2 font-medium">Average $1,050 per invoice</p>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm hover:shadow-md transition-shadow group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-3 bg-purple-50 text-purple-600 rounded-xl group-hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined">group</span>
-            </div>
-            <span className="text-xs font-black text-green-600 bg-green-50 px-3 py-1 rounded-full uppercase tracking-wider">{stats.client_growth}</span>
-          </div>
-          <p className="text-sm text-on-surface-variant font-bold uppercase tracking-widest">Active Clients</p>
-          <h3 className="text-3xl font-black mt-1 text-on-surface tracking-tighter">{stats.active_clients}</h3>
-          <p className="text-xs text-on-surface-variant mt-2 font-medium">Retention rate: 94%</p>
-        </div>
-      </section>
-
-      {/* Revenue Trends Chart */}
-      <section className="bg-white p-8 rounded-2xl border border-outline-variant shadow-sm">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <h3 className="text-xl font-black text-on-surface tracking-tight">Revenue Trends</h3>
-            <p className="text-sm text-on-surface-variant font-medium mt-1">Monthly breakdown of your earnings</p>
-          </div>
-          <select className="text-sm font-bold border-outline-variant rounded-xl bg-surface px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all cursor-pointer">
-            <option>Last 6 Months</option>
-            <option>Last Year</option>
-          </select>
-        </div>
-        
-        <div className="h-72 flex items-end justify-between gap-4 p-4 rounded-2xl border border-dashed border-outline-variant/50 bg-gradient-to-b from-primary/5 to-transparent relative">
-          {/* Chart Horizontal Lines */}
-          <div className="absolute inset-0 flex flex-col justify-between pointer-events-none py-4 px-2 opacity-20">
-            {[1,2,3,4].map(i => <div key={i} className="w-full border-t border-outline"></div>)}
-          </div>
-
-          {[
-            { m: 'Jan', h: 'h-24', v: '$12.4k' },
-            { m: 'Feb', h: 'h-32', v: '$15.2k' },
-            { m: 'Mar', h: 'h-28', v: '$14.8k' },
-            { m: 'Apr', h: 'h-44', v: '$22.1k' },
-            { m: 'May', h: 'h-36', v: '$18.5k' },
-            { m: 'Jun', h: 'h-56', v: '$28.4k', active: true },
-          ].map((bar, i) => (
-            <div key={i} className="flex-1 flex flex-col items-center gap-3 group relative z-10">
-              <div className={`w-full max-w-[50px] rounded-t-xl transition-all duration-500 cursor-pointer relative shadow-sm hover:shadow-lg ${bar.active ? 'bg-primary shadow-blue-200' : 'bg-primary/20 hover:bg-primary/40'} ${bar.h}`}>
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-on-surface text-white text-[10px] font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-xl">
-                  {bar.v}
-                </div>
+        {/* Stat Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group">
+            <div className="flex justify-between items-start mb-5">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                <span className="material-symbols-outlined">payments</span>
               </div>
-              <span className={`text-[10px] font-black uppercase tracking-widest ${bar.active ? 'text-primary' : 'text-on-surface-variant'}`}>{bar.m}</span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-black">
+                <span className="material-symbols-outlined text-[14px]">trending_up</span>
+                {stats.revenue_growth}
+              </span>
             </div>
-          ))}
-        </div>
-      </section>
+            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Total Revenue</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+              ${stats.total_revenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+            </h3>
+          </div>
 
-      {/* Recent Payments Table */}
-      <section className="bg-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
-        <div className="px-8 py-6 border-b border-outline-variant flex justify-between items-center">
-          <h3 className="text-xl font-black text-on-surface tracking-tight">Recent Payments</h3>
-          <button className="text-sm font-black text-primary hover:underline uppercase tracking-widest">View All</button>
+          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group">
+            <div className="flex justify-between items-start mb-5">
+              <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                <span className="material-symbols-outlined">receipt_long</span>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black">
+                <span className="material-symbols-outlined text-[14px]">trending_flat</span> 0%
+              </span>
+            </div>
+            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Total Invoices</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{stats.total_invoices.toLocaleString()}</h3>
+          </div>
+
+          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group">
+            <div className="flex justify-between items-start mb-5">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                <span className="material-symbols-outlined">check_circle</span>
+              </div>
+            </div>
+            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Paid Invoices</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{stats.paid_invoices.toLocaleString()}</h3>
+          </div>
+
+          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group relative overflow-hidden">
+            <div className="absolute right-0 top-0 w-28 h-28 bg-red-50 rounded-bl-full -mr-6 -mt-6 opacity-40 z-0 group-hover:scale-110 transition-transform"></div>
+            <div className="relative z-10 flex justify-between items-start mb-5">
+              <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all">
+                <span className="material-symbols-outlined">warning</span>
+              </div>
+            </div>
+            <p className="relative z-10 text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Overdue</p>
+            <h3 className="relative z-10 text-2xl font-black text-red-600 tracking-tight">{stats.overdue_invoices}</h3>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-surface-container-low text-[11px] font-black uppercase tracking-widest text-on-surface-variant">
-                <th className="px-8 py-5">Payment ID</th>
-                <th className="px-8 py-5">Client</th>
-                <th className="px-8 py-5">Invoice #</th>
-                <th className="px-8 py-5">Date</th>
-                <th className="px-8 py-5 text-right">Amount</th>
-                <th className="px-8 py-5">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant/50">
-              {recentPayments.map((pay) => (
-                <tr key={pay.id} className="hover:bg-surface-container-low transition-colors cursor-pointer group">
-                  <td className="px-8 py-5 text-sm font-bold text-primary">{pay.id}</td>
-                  <td className="px-8 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-surface-container text-[11px] flex items-center justify-center font-black text-on-surface-variant shadow-sm">{pay.clientInitials}</div>
-                      <span className="text-sm font-bold text-on-surface">{pay.client}</span>
+
+        {/* Revenue Trends Chart */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-black text-slate-900">Revenue Trends</h2>
+              <p className="text-slate-400 text-sm mt-0.5 font-medium">Monthly breakdown of your earnings</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select
+                value={timeRange}
+                onChange={(e) => setTimeRange(e.target.value as "6m" | "year" | "3m")}
+                className="h-10 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 bg-slate-50 px-4 pr-10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer"
+              >
+                <option value="6m">Last 6 Months</option>
+                <option value="year">This Year</option>
+                <option value="3m">Last 3 Months</option>
+              </select>
+              <button className="w-10 h-10 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors">
+                <span className="material-symbols-outlined text-[22px]">more_vert</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="px-8 pt-6 pb-8">
+            <div className="flex gap-6">
+              {/* Y-Axis Labels */}
+              <div className="flex flex-col justify-between text-right shrink-0 pb-8" style={{ height: "280px" }}>
+                {yTicks.map((tick, i) => (
+                  <span key={i} className="text-[11px] font-mono text-slate-300 leading-none">
+                    ${tick >= 1000 ? `${(tick / 1000).toFixed(0)}k` : tick}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                {/* SVG Chart */}
+                <div
+                  className="relative w-full"
+                  style={{ height: "240px" }}
+                  onMouseLeave={() => setTooltip((t) => ({ ...t, visible: false }))}
+                >
+                  <svg
+                    className="absolute inset-0 w-full h-full"
+                    viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+                    preserveAspectRatio="none"
+                    overflow="visible"
+                  >
+                    <defs>
+                      <linearGradient id="revGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor="#2563eb" stopOpacity="0.15" />
+                        <stop offset="85%" stopColor="#2563eb" stopOpacity="0.01" />
+                      </linearGradient>
+                    </defs>
+
+                    {[0.25, 0.5, 0.75].map((pct, i) => (
+                      <line key={i} x1="0" y1={SVG_H * pct} x2={SVG_W} y2={SVG_H * pct}
+                        stroke="#f1f5f9" strokeWidth="1" strokeDasharray="6,4" />
+                    ))}
+
+                    <path d={chartPoints.area} fill="url(#revGradient)" className="transition-all duration-700" />
+                    <path d={chartPoints.line} fill="none" stroke="#2563eb" strokeWidth="2.5"
+                      strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-700" />
+
+                    {chartPoints.points.map((pt, i) => {
+                      const slotW = SVG_W / (chartPoints.points.length - 1 || 1);
+                      const slotX = i === 0 ? 0 : pt.x - slotW / 2;
+                      const slotXEnd = i === chartPoints.points.length - 1 ? SVG_W : pt.x + slotW / 2;
+
+                      return (
+                        <g key={i}>
+                          <rect x={slotX} y={0} width={slotXEnd - slotX} height={SVG_H}
+                            fill="transparent"
+                            onMouseEnter={(e) => {
+                              const svg = (e.target as SVGElement).ownerSVGElement!;
+                              const rect = svg.getBoundingClientRect();
+                              const scaleX = rect.width / SVG_W;
+                              const scaleY = rect.height / SVG_H;
+                              setTooltip({
+                                visible: true,
+                                x: pt.x * scaleX,
+                                y: pt.y * scaleY,
+                                value: pt.value,
+                                label: chartData[i].label,
+                              });
+                            }}
+                          />
+                          <circle cx={pt.x} cy={pt.y} r="4" fill="#2563eb" stroke="#fff" strokeWidth="2" />
+                        </g>
+                      );
+                    })}
+
+                    {chartPoints.points.length > 0 && (
+                      <line
+                        x1={chartPoints.points[chartPoints.points.length - 1].x}
+                        y1={chartPoints.points[chartPoints.points.length - 1].y}
+                        x2={chartPoints.points[chartPoints.points.length - 1].x}
+                        y2={SVG_H}
+                        stroke="#2563eb" strokeWidth="1" strokeDasharray="4,4" strokeOpacity="0.35"
+                      />
+                    )}
+                  </svg>
+
+                  {tooltip.visible && (
+                    <div
+                      className="absolute pointer-events-none z-20 bg-slate-900 text-white text-[12px] font-black rounded-xl px-3 py-2 shadow-lg whitespace-nowrap"
+                      style={{ left: tooltip.x, top: tooltip.y - 44, transform: "translateX(-50%)" }}
+                    >
+                      ${tooltip.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-[-6px] w-0 h-0"
+                        style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #0f172a" }}
+                      />
                     </div>
-                  </td>
-                  <td className="px-8 py-5 text-sm text-on-surface-variant font-medium">{pay.invoice}</td>
-                  <td className="px-8 py-5 text-sm text-on-surface-variant font-medium">{pay.date}</td>
-                  <td className="px-8 py-5 text-sm font-black text-right text-on-surface">${pay.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                  <td className="px-8 py-5">
-                    <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                      pay.status === 'Success' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${pay.status === 'Success' ? 'bg-green-500' : 'bg-amber-500'}`}></span>
-                      {pay.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {/* Bottom Grid: Clients & Actions */}
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-10">
-        {/* Top Clients */}
-        <div className="bg-white rounded-2xl border border-outline-variant shadow-sm overflow-hidden flex flex-col">
-          <div className="px-8 py-6 border-b border-outline-variant flex justify-between items-center">
-            <h3 className="text-xl font-black text-on-surface tracking-tight">Top Clients</h3>
-            <button className="p-2 hover:bg-surface-container rounded-xl transition-all">
-              <span className="material-symbols-outlined text-on-surface-variant">more_horiz</span>
-            </button>
-          </div>
-          <div className="p-4 flex-1 space-y-2">
-            {topClients.map((client, i) => (
-              <div key={i} className="flex items-center justify-between p-4 hover:bg-surface-container-low rounded-2xl transition-all cursor-pointer group">
-                <div className="flex items-center gap-4">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm shadow-sm ${client.color}`}>{client.initials}</div>
-                  <div>
-                    <p className="text-sm font-black text-on-surface">{client.name}</p>
-                    <p className="text-xs text-on-surface-variant font-medium">{client.email}</p>
-                  </div>
+                  )}
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-black text-on-surface">${client.amount.toLocaleString()}</p>
-                  <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">Total Billed</p>
+
+                {/* X-Axis Labels */}
+                <div className="flex justify-between mt-3">
+                  {chartData.map((d, i) => (
+                    <span key={i} className={`text-[11px] font-black uppercase tracking-widest ${
+                      i === chartData.length - 1 ? "text-blue-600" : "text-slate-400"
+                    }`}>
+                      {d.label}
+                    </span>
+                  ))}
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="space-y-6">
-          <div className="bg-primary p-8 rounded-2xl text-white shadow-2xl shadow-blue-200 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-            <h3 className="text-xl font-black mb-2 tracking-tight relative z-10">Automate your invoicing</h3>
-            <p className="text-sm text-blue-100 mb-8 font-medium leading-relaxed relative z-10">Connect your bank account to automatically reconcile payments and save up to 10 hours a week.</p>
-            <button className="w-full py-4 bg-white text-primary font-black rounded-xl hover:bg-blue-50 transition-all active:scale-95 shadow-xl relative z-10 uppercase tracking-widest text-xs">
-              Connect Bank Account
-            </button>
+        {/* Secondary Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left — 2 cols: BillingOverview + Recent Payments stacked */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+
+            {/* ── Billing Overview ── */}
+            <BillingOverview
+              stats={{
+                paid_invoices: stats.paid_invoices,
+                sent_invoices: stats.sent_invoices,
+                draft_invoices: stats.draft_invoices,
+                overdue_invoices: stats.overdue_invoices,
+                total_invoices: stats.total_invoices,
+              }}
+            />
+
+            {/* Recent Payments */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+              <div className="p-8 border-b border-slate-50 flex justify-between items-center shrink-0">
+                <h2 className="text-xl font-black text-slate-900">Recent Payments</h2>
+                <Link href="/invoices" className="text-sm font-black text-blue-600 hover:text-blue-700">View All</Link>
+              </div>
+              <div className="overflow-x-auto flex-1">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-slate-50/30 border-b border-slate-100">
+                      {([["ID",""], ["Client",""], ["Date",""], ["Amount","text-right"], ["Status","text-center"]] as [string,string][]).map(([h, cls]) => (
+                        <th key={h} className={`py-4 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest ${cls}`}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {recentPayments.length > 0 ? recentPayments.map((pay) => (
+                      <tr key={pay.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer">
+                        <td className="py-5 px-8 text-[13px] font-mono font-bold text-slate-400 group-hover:text-blue-600 transition-colors">{pay.id}</td>
+                        <td className="py-5 px-8">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-black text-xs">{pay.clientInitials}</div>
+                            <span className="text-[14px] font-black text-slate-900">{pay.client}</span>
+                          </div>
+                        </td>
+                        <td className="py-5 px-8 text-[13px] font-medium text-slate-500">{pay.date}</td>
+                        <td className="py-5 px-8 text-[14px] font-black text-slate-900 text-right">${pay.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="py-5 px-8 text-center">
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                            pay.status === "Paid" ? "bg-emerald-50 text-emerald-700" :
+                            pay.status === "Overdue" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"
+                          }`}>{pay.status}</span>
+                        </td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan={5} className="py-12 text-center text-sm text-slate-400">No recent payments.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
           </div>
-          
-          <div className="bg-white p-6 rounded-2xl border border-outline-variant shadow-sm flex items-center gap-5 hover:border-primary/50 transition-colors cursor-pointer group">
-            <div className="w-14 h-14 bg-surface-container rounded-2xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
-              <span className="material-symbols-outlined text-2xl">help_center</span>
+
+          {/* Right: Quick Actions + Top Clients */}
+          <div className="flex flex-col gap-8">
+            {/* Quick Actions */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 relative overflow-hidden group">
+              <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-500" />
+              <h2 className="text-lg font-black text-slate-900 mb-6 relative z-10">Quick Actions</h2>
+              <div className="flex flex-col gap-3 relative z-10">
+                <Link href="/invoices/new" className="h-[44px] w-full bg-blue-600 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors active:scale-[0.98]">
+                  <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>post_add</span>
+                  New Invoice
+                </Link>
+                <Link href="/clients" className="h-[44px] w-full bg-white border border-slate-200 text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors active:scale-[0.98]">
+                  <span className="material-symbols-outlined text-[18px]">person_add</span>
+                  Add Client
+                </Link>
+              </div>
             </div>
-            <div className="flex-1">
-              <h4 className="font-black text-sm text-on-surface uppercase tracking-wider">Need help with Reports?</h4>
-              <p className="text-xs text-on-surface-variant font-medium mt-1">Schedule a 15-min walkthrough with an expert.</p>
+
+            {/* Top Clients */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex-1 flex flex-col">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-black text-slate-900">Top Clients</h2>
+                <span className="material-symbols-outlined text-slate-300 text-[22px]">star</span>
+              </div>
+              <div className="flex flex-col gap-5 flex-1">
+                {topClients.length > 0 ? topClients.map((client, i) => (
+                  <div key={i} className="flex items-center justify-between p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-3">
+                      {client.avatar
+                        ? <img src={client.avatar} alt={client.name} className="w-10 h-10 rounded-full border border-slate-200 object-cover" />
+                        : <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${
+                            i === 0 ? "bg-indigo-50 border border-indigo-100 text-indigo-700" :
+                            i === 1 ? "bg-amber-50 border border-amber-100 text-amber-700" :
+                            "bg-slate-100 border border-slate-200 text-slate-500"
+                          }`}>{client.initials}</div>
+                      }
+                      <div>
+                        <p className="text-[14px] font-black text-slate-900">{client.name}</p>
+                        <p className="text-[11px] font-medium text-slate-400">{client.count} Invoices</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[14px] font-black text-slate-900">${(client.amount / 1000).toFixed(0)}K</p>
+                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">YTD</p>
+                    </div>
+                  </div>
+                )) : (
+                  <p className="text-center py-10 text-sm text-slate-400">No clients yet.</p>
+                )}
+              </div>
+              <Link href="/clients" className="mt-6 w-full text-[11px] font-black text-slate-400 hover:text-slate-900 transition-colors border-t border-slate-50 pt-6 text-center uppercase tracking-widest">
+                View All Clients
+              </Link>
             </div>
-            <button className="material-symbols-outlined text-outline group-hover:text-primary group-hover:translate-x-1 transition-all">chevron_right</button>
           </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 }
