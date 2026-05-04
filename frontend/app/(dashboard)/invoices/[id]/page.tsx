@@ -4,6 +4,21 @@ import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
 import { ArrowLeft, Printer, Download, Mail, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { 
+  StandardPreview, 
+  ModernMinimalPreview, 
+  CreativeEdgePreview, 
+  CorporateBlueprintPreview, 
+  ElegantSerifPreview 
+} from "@/components/dashboard/TemplatePreview";
+
+const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
+  standard: StandardPreview,
+  "modern-minimal": ModernMinimalPreview,
+  "creative-edge": CreativeEdgePreview,
+  "corporate-blueprint": CorporateBlueprintPreview,
+  "elegant-serif": ElegantSerifPreview,
+};
 
 export default function InvoiceViewPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -13,6 +28,7 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("standard");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,6 +44,9 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
         try {
           const userRes = await api.get('/api/v1/users/me');
           setUser(userRes.data);
+          if (userRes.data.selected_template) {
+            setSelectedTemplate(userRes.data.selected_template);
+          }
         } catch (e) {
           console.error("Could not fetch user", e);
         }
@@ -119,6 +138,28 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
     window.print();
   };
 
+  const PreviewComponent = TEMPLATE_COMPONENTS[selectedTemplate] || StandardPreview;
+
+  const invoiceData = {
+    invoiceNumber: invoice.invoice_number,
+    issueDate: invoice.issue_date,
+    dueDate: invoice.due_date,
+    clientName: client?.name || "Client Name",
+    clientAddress: client?.address || "Client Address",
+    items: invoice.items.map((item: any) => ({
+      description: item.description,
+      quantity: item.quantity,
+      unit_price: item.unit_price
+    })),
+    subtotal: invoice.subtotal,
+    taxPercentage: 0, // Not directly in invoice model, but we have tax_amount
+    taxAmount: invoice.tax_amount,
+    discount: invoice.discount_amount,
+    total: invoice.total_amount,
+    currency: invoice.currency || "USD",
+    notes: invoice.notes
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen text-slate-800 font-sans -m-6 pb-20">
       {/* Top Action Bar */}
@@ -150,142 +191,8 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
       {/* Invoice Preview Container */}
       <main className="max-w-5xl mx-auto py-12 px-6 flex justify-center" data-purpose="preview-area">
         {/* A4 Invoice Page */}
-        <article className="invoice-page print-shadow-none bg-white w-full max-w-[210mm] min-h-[297mm] shadow-xl rounded-lg p-12 flex flex-col" data-purpose="invoice-document">
-          {/* Invoice Header */}
-          <header className="flex justify-between items-start mb-16">
-            <div>
-              {/* Company Logo Placeholder */}
-              <div className="flex items-center gap-2 mb-6" data-purpose="brand-logo">
-                <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-lg font-heading">IP</span>
-                </div>
-                <span className="text-xl font-bold tracking-tight font-heading">InvoicePro</span>
-              </div>
-              <h2 className="text-3xl font-heading font-bold mb-1">Invoice</h2>
-              <p className="text-gray-500 text-sm font-medium tracking-wide">#{invoice.invoice_number}</p>
-            </div>
-            <div className="text-right">
-              {invoice.status === 'PAID' ? (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">
-                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Paid
-                </span>
-              ) : (
-                <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase ${
-                  invoice.status === 'DRAFT' ? 'bg-gray-100 text-gray-700' :
-                  invoice.status === 'SENT' ? 'bg-blue-100 text-blue-700' :
-                  invoice.status === 'OVERDUE' ? 'bg-rose-100 text-rose-700' :
-                  'bg-gray-100 text-gray-700'
-                }`}>
-                  {invoice.status || 'DRAFT'}
-                </span>
-              )}
-            </div>
-          </header>
-
-          {/* Billing Info & Meta */}
-          <section className="grid grid-cols-2 gap-12 mb-16" data-purpose="billing-and-meta">
-            {/* Address Columns */}
-            <div className="grid grid-cols-2 gap-8">
-              <div data-purpose="billed-by">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Billed by:</h3>
-                <div className="text-sm leading-relaxed text-gray-700">
-                  <p className="font-bold text-slate-900">InvoicePro</p>
-                  <p className="text-gray-500">{user?.email || "hello@invoicepro.com"}</p>
-                  <p className="text-gray-500 mt-2">123 Business Rd, Tech City,</p>
-                  <p className="text-gray-500">CA 94103</p>
-                </div>
-              </div>
-              <div data-purpose="billed-to">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Billed to:</h3>
-                <div className="text-sm leading-relaxed text-gray-700">
-                  <p className="font-bold text-slate-900">{client?.name || "Client Name"}</p>
-                  <p className="text-gray-500">{client?.email || "client@example.com"}</p>
-                  <p className="text-gray-500 whitespace-pre-line mt-2">{client?.address || "Client Address"}</p>
-                </div>
-              </div>
-            </div>
-            {/* Meta Grid */}
-            <div className="grid grid-cols-2 gap-8 border-l border-gray-200 pl-12">
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Issued Date</h3>
-                <p className="text-sm font-semibold text-slate-900">{new Date(invoice.issue_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'})}</p>
-              </div>
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Due Date</h3>
-                <p className="text-sm font-semibold text-slate-900">{new Date(invoice.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'})}</p>
-              </div>
-            </div>
-          </section>
-
-          {/* Items Table */}
-          <section className="flex-grow mb-12" data-purpose="line-items">
-            <table className="w-full text-left">
-              <thead className="border-b-2 border-slate-900">
-                <tr>
-                  <th className="py-4 text-xs font-bold uppercase tracking-wider text-gray-500">Items</th>
-                  <th className="py-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-center">Qty</th>
-                  <th className="py-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-right">Rate</th>
-                  <th className="py-4 text-xs font-bold uppercase tracking-wider text-gray-500 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {invoice.items && invoice.items.length > 0 ? invoice.items.map((item: any, i: number) => (
-                  <tr key={i}>
-                    <td className="py-5">
-                      <div className="font-semibold text-sm text-slate-900">{item.description}</div>
-                    </td>
-                    <td className="py-5 text-sm text-center text-gray-600">{item.quantity}</td>
-                    <td className="py-5 text-sm text-right text-gray-600">${item.unit_price.toFixed(2)}</td>
-                    <td className="py-5 text-sm font-bold text-right text-slate-900">${item.amount.toFixed(2)}</td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={4} className="py-6 text-center text-sm text-gray-500">No items found</td></tr>
-                )}
-              </tbody>
-            </table>
-          </section>
-
-          {/* Invoice Footer Summary */}
-          <footer className="pt-8 border-t border-gray-200" data-purpose="invoice-footer">
-            <div className="flex justify-between gap-12">
-              {/* Notes section */}
-              <div className="max-w-xs">
-                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Notes</h3>
-                <p className="text-xs leading-relaxed text-gray-500 whitespace-pre-line">
-                  {invoice.notes || "Thank you for your business. Please make payment within 7 days. Contact us with any questions regarding this invoice or payment details."}
-                </p>
-              </div>
-              {/* Totals section */}
-              <div className="w-64">
-                <div className="flex justify-between mb-3">
-                  <span className="text-sm text-gray-500">Subtotal</span>
-                  <span className="text-sm font-semibold text-slate-900">${invoice.subtotal.toFixed(2)}</span>
-                </div>
-                {invoice.tax_amount > 0 && (
-                  <div className="flex justify-between mb-3">
-                    <span className="text-sm text-gray-500">Tax</span>
-                    <span className="text-sm font-semibold text-slate-900">${invoice.tax_amount.toFixed(2)}</span>
-                  </div>
-                )}
-                {invoice.discount_amount > 0 && (
-                  <div className="flex justify-between mb-3">
-                    <span className="text-sm text-gray-500">Discount</span>
-                    <span className="text-sm font-semibold text-slate-900">-${invoice.discount_amount.toFixed(2)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between pt-5 border-t-2 border-slate-900 mt-4">
-                  <span className="text-lg font-heading font-bold text-slate-900">Total</span>
-                  <span className="text-xl font-heading font-bold text-brand">${invoice.total_amount.toFixed(2)}</span>
-                </div>
-              </div>
-            </div>
-            {/* Decorative bottom elements */}
-            <div className="mt-20 pt-6 border-t border-dashed border-gray-200 flex justify-between items-center text-[10px] text-gray-400 uppercase tracking-widest">
-              <span>invoicepro.com</span>
-              <span>© {new Date().getFullYear()} InvoicePro Inc.</span>
-              <span>Internal Use Only</span>
-            </div>
-          </footer>
+        <article className="invoice-page print-shadow-none bg-white w-full max-w-[210mm] min-h-[297mm] shadow-xl rounded-lg overflow-hidden flex flex-col" data-purpose="invoice-document">
+          <PreviewComponent data={invoiceData} />
         </article>
       </main>
       

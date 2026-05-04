@@ -22,6 +22,7 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(SQLEnum(UserRole), default=UserRole.OWNER, nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    selected_template: Mapped[str] = mapped_column(String(50), default="minimalist", nullable=False)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
 

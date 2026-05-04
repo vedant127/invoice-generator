@@ -190,80 +190,80 @@ export default function DashboardPage() {
   const yTicks = [yMax, yMax * 0.75, yMax * 0.5, yMax * 0.25, 0];
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 lg:px-12 xl:px-16 pb-24 bg-[#F8F9FB] animate-in fade-in duration-700 font-sans">
+    <div className="flex-1 overflow-y-auto p-8 lg:px-12 xl:px-16 pb-24 bg-[#F8F9FB] dark:bg-slate-950 animate-in fade-in duration-700 font-sans transition-colors">
       <div className="max-w-[1400px] mx-auto space-y-10">
 
         {/* Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md group">
             <div className="flex justify-between items-start mb-5">
-              <div className="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
                 <span className="material-symbols-outlined">payments</span>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-black">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 text-[11px] font-black">
                 <span className="material-symbols-outlined text-[14px]">trending_up</span>
                 {stats.revenue_growth}
               </span>
             </div>
-            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Total Revenue</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mb-2">Total Revenue</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               ${stats.total_revenue.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md group">
             <div className="flex justify-between items-start mb-5">
-              <div className="w-11 h-11 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400 group-hover:bg-purple-600 group-hover:text-white transition-all">
                 <span className="material-symbols-outlined">receipt_long</span>
               </div>
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-black">
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[11px] font-black">
                 <span className="material-symbols-outlined text-[14px]">trending_flat</span> 0%
               </span>
             </div>
-            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Total Invoices</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{stats.total_invoices.toLocaleString()}</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mb-2">Total Invoices</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total_invoices.toLocaleString()}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md group">
             <div className="flex justify-between items-start mb-5">
-              <div className="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-600 group-hover:text-white transition-all">
                 <span className="material-symbols-outlined">check_circle</span>
               </div>
             </div>
-            <p className="text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Paid Invoices</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tight">{stats.paid_invoices.toLocaleString()}</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mb-2">Paid Invoices</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{stats.paid_invoices.toLocaleString()}</h3>
           </div>
 
-          <div className="bg-white rounded-2xl p-7 border border-slate-200 shadow-sm transition-all duration-300 hover:shadow-md group relative overflow-hidden">
-            <div className="absolute right-0 top-0 w-28 h-28 bg-red-50 rounded-bl-full -mr-6 -mt-6 opacity-40 z-0 group-hover:scale-110 transition-transform"></div>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md group relative overflow-hidden">
+            <div className="absolute right-0 top-0 w-28 h-28 bg-red-50 dark:bg-red-900/20 rounded-bl-full -mr-6 -mt-6 opacity-40 z-0 group-hover:scale-110 transition-transform"></div>
             <div className="relative z-10 flex justify-between items-start mb-5">
-              <div className="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all">
+              <div className="w-11 h-11 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600 dark:text-red-400 group-hover:bg-red-600 group-hover:text-white transition-all">
                 <span className="material-symbols-outlined">warning</span>
               </div>
             </div>
-            <p className="relative z-10 text-slate-500 text-[11px] font-black uppercase tracking-widest mb-2">Overdue</p>
-            <h3 className="relative z-10 text-2xl font-black text-red-600 tracking-tight">{stats.overdue_invoices}</h3>
+            <p className="relative z-10 text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mb-2">Overdue</p>
+            <h3 className="relative z-10 text-2xl font-black text-red-600 dark:text-red-400 tracking-tight">{stats.overdue_invoices}</h3>
           </div>
         </div>
 
         {/* Revenue Trends Chart */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-black text-slate-900">Revenue Trends</h2>
-              <p className="text-slate-400 text-sm mt-0.5 font-medium">Monthly breakdown of your earnings</p>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">Revenue Trends</h2>
+              <p className="text-slate-400 dark:text-slate-500 text-sm mt-0.5 font-medium">Monthly breakdown of your earnings</p>
             </div>
             <div className="flex items-center gap-3">
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as "6m" | "year" | "3m")}
-                className="h-10 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 bg-slate-50 px-4 pr-10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer"
+                className="h-10 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 px-4 pr-10 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 outline-none appearance-none cursor-pointer"
               >
                 <option value="6m">Last 6 Months</option>
                 <option value="year">This Year</option>
                 <option value="3m">Last 3 Months</option>
               </select>
-              <button className="w-10 h-10 border border-slate-200 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-colors">
+              <button className="w-10 h-10 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                 <span className="material-symbols-outlined text-[22px]">more_vert</span>
               </button>
             </div>
@@ -274,7 +274,7 @@ export default function DashboardPage() {
               {/* Y-Axis Labels */}
               <div className="flex flex-col justify-between text-right shrink-0 pb-8" style={{ height: "280px" }}>
                 {yTicks.map((tick, i) => (
-                  <span key={i} className="text-[11px] font-mono text-slate-300 leading-none">
+                  <span key={i} className="text-[11px] font-mono text-slate-300 dark:text-slate-600 leading-none">
                     ${tick >= 1000 ? `${(tick / 1000).toFixed(0)}k` : tick}
                   </span>
                 ))}
@@ -302,7 +302,7 @@ export default function DashboardPage() {
 
                     {[0.25, 0.5, 0.75].map((pct, i) => (
                       <line key={i} x1="0" y1={SVG_H * pct} x2={SVG_W} y2={SVG_H * pct}
-                        stroke="#f1f5f9" strokeWidth="1" strokeDasharray="6,4" />
+                        stroke="currentColor" strokeWidth="1" strokeDasharray="6,4" className="text-slate-100 dark:text-slate-800/50" />
                     ))}
 
                     <path d={chartPoints.area} fill="url(#revGradient)" className="transition-all duration-700" />
@@ -332,7 +332,7 @@ export default function DashboardPage() {
                               });
                             }}
                           />
-                          <circle cx={pt.x} cy={pt.y} r="4" fill="#2563eb" stroke="#fff" strokeWidth="2" />
+                          <circle cx={pt.x} cy={pt.y} r="4" fill="#2563eb" stroke="currentColor" strokeWidth="2" className="text-white dark:text-slate-900" />
                         </g>
                       );
                     })}
@@ -350,13 +350,11 @@ export default function DashboardPage() {
 
                   {tooltip.visible && (
                     <div
-                      className="absolute pointer-events-none z-20 bg-slate-900 text-white text-[12px] font-black rounded-xl px-3 py-2 shadow-lg whitespace-nowrap"
+                      className="absolute pointer-events-none z-20 bg-slate-900 dark:bg-slate-800 text-white text-[12px] font-black rounded-xl px-3 py-2 shadow-lg whitespace-nowrap"
                       style={{ left: tooltip.x, top: tooltip.y - 44, transform: "translateX(-50%)" }}
                     >
                       ${tooltip.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-[-6px] w-0 h-0"
-                        style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #0f172a" }}
-                      />
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-[-6px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900 dark:border-t-slate-800" />
                     </div>
                   )}
                 </div>
@@ -365,7 +363,7 @@ export default function DashboardPage() {
                 <div className="flex justify-between mt-3">
                   {chartData.map((d, i) => (
                     <span key={i} className={`text-[11px] font-black uppercase tracking-widest ${
-                      i === chartData.length - 1 ? "text-blue-600" : "text-slate-400"
+                      i === chartData.length - 1 ? "text-blue-600" : "text-slate-400 dark:text-slate-600"
                     }`}>
                       {d.label}
                     </span>
@@ -393,36 +391,36 @@ export default function DashboardPage() {
             />
 
             {/* Recent Payments */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-              <div className="p-8 border-b border-slate-50 flex justify-between items-center shrink-0">
-                <h2 className="text-xl font-black text-slate-900">Recent Payments</h2>
-                <Link href="/invoices" className="text-sm font-black text-blue-600 hover:text-blue-700">View All</Link>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col transition-colors">
+              <div className="p-8 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center shrink-0">
+                <h2 className="text-xl font-black text-slate-900 dark:text-white">Recent Payments</h2>
+                <Link href="/invoices" className="text-sm font-black text-blue-600 hover:text-blue-700 dark:text-blue-400">View All</Link>
               </div>
               <div className="overflow-x-auto flex-1">
                 <table className="w-full text-left">
                   <thead>
-                    <tr className="bg-slate-50/30 border-b border-slate-100">
+                    <tr className="bg-slate-50/30 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800">
                       {([["ID",""], ["Client",""], ["Date",""], ["Amount","text-right"], ["Status","text-center"]] as [string,string][]).map(([h, cls]) => (
-                        <th key={h} className={`py-4 px-8 text-[11px] font-black text-slate-400 uppercase tracking-widest ${cls}`}>{h}</th>
+                        <th key={h} className={`py-4 px-8 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ${cls}`}>{h}</th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                     {recentPayments.length > 0 ? recentPayments.map((pay) => (
-                      <tr key={pay.id} className="hover:bg-slate-50/50 transition-colors group cursor-pointer">
+                      <tr key={pay.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors group cursor-pointer">
                         <td className="py-5 px-8 text-[13px] font-mono font-bold text-slate-400 group-hover:text-blue-600 transition-colors">{pay.id}</td>
                         <td className="py-5 px-8">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-black text-xs">{pay.clientInitials}</div>
-                            <span className="text-[14px] font-black text-slate-900">{pay.client}</span>
+                            <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 font-black text-xs">{pay.clientInitials}</div>
+                            <span className="text-[14px] font-black text-slate-900 dark:text-white">{pay.client}</span>
                           </div>
                         </td>
-                        <td className="py-5 px-8 text-[13px] font-medium text-slate-500">{pay.date}</td>
-                        <td className="py-5 px-8 text-[14px] font-black text-slate-900 text-right">${pay.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                        <td className="py-5 px-8 text-[13px] font-medium text-slate-500 dark:text-slate-400">{pay.date}</td>
+                        <td className="py-5 px-8 text-[14px] font-black text-slate-900 dark:text-white text-right">${pay.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                         <td className="py-5 px-8 text-center">
                           <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                            pay.status === "Paid" ? "bg-emerald-50 text-emerald-700" :
-                            pay.status === "Overdue" ? "bg-red-50 text-red-700" : "bg-amber-50 text-amber-700"
+                            pay.status === "Paid" ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" :
+                            pay.status === "Overdue" ? "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400" : "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"
                           }`}>{pay.status}</span>
                         </td>
                       </tr>
@@ -439,15 +437,15 @@ export default function DashboardPage() {
           {/* Right: Quick Actions + Top Clients */}
           <div className="flex flex-col gap-8">
             {/* Quick Actions */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 relative overflow-hidden group">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 relative overflow-hidden group transition-colors">
               <div className="absolute -right-8 -top-8 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-500" />
-              <h2 className="text-lg font-black text-slate-900 mb-6 relative z-10">Quick Actions</h2>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white mb-6 relative z-10">Quick Actions</h2>
               <div className="flex flex-col gap-3 relative z-10">
                 <Link href="/invoices/new" className="h-[44px] w-full bg-blue-600 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors active:scale-[0.98]">
                   <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: "'FILL' 1" }}>post_add</span>
                   New Invoice
                 </Link>
-                <Link href="/clients" className="h-[44px] w-full bg-white border border-slate-200 text-slate-700 rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors active:scale-[0.98]">
+                <Link href="/clients" className="h-[44px] w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-black text-sm flex items-center justify-center gap-2 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors active:scale-[0.98]">
                   <span className="material-symbols-outlined text-[18px]">person_add</span>
                   Add Client
                 </Link>
@@ -455,38 +453,38 @@ export default function DashboardPage() {
             </div>
 
             {/* Top Clients */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 flex-1 flex flex-col">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-8 flex-1 flex flex-col transition-colors">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-lg font-black text-slate-900">Top Clients</h2>
-                <span className="material-symbols-outlined text-slate-300 text-[22px]">star</span>
+                <h2 className="text-lg font-black text-slate-900 dark:text-white">Top Clients</h2>
+                <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-[22px]">star</span>
               </div>
               <div className="flex flex-col gap-5 flex-1">
                 {topClients.length > 0 ? topClients.map((client, i) => (
-                  <div key={i} className="flex items-center justify-between p-2 -mx-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                  <div key={i} className="flex items-center justify-between p-2 -mx-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                     <div className="flex items-center gap-3">
                       {client.avatar
-                        ? <img src={client.avatar} alt={client.name} className="w-10 h-10 rounded-full border border-slate-200 object-cover" />
+                        ? <img src={client.avatar} alt={client.name} className="w-10 h-10 rounded-full border border-slate-200 dark:border-slate-800 object-cover" />
                         : <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${
-                            i === 0 ? "bg-indigo-50 border border-indigo-100 text-indigo-700" :
-                            i === 1 ? "bg-amber-50 border border-amber-100 text-amber-700" :
-                            "bg-slate-100 border border-slate-200 text-slate-500"
+                            i === 0 ? "bg-indigo-50 border border-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-400" :
+                            i === 1 ? "bg-amber-50 border border-amber-100 text-amber-700 dark:bg-amber-900/30 dark:border-amber-800 dark:text-amber-400" :
+                            "bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400"
                           }`}>{client.initials}</div>
                       }
                       <div>
-                        <p className="text-[14px] font-black text-slate-900">{client.name}</p>
-                        <p className="text-[11px] font-medium text-slate-400">{client.count} Invoices</p>
+                        <p className="text-[14px] font-black text-slate-900 dark:text-white">{client.name}</p>
+                        <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">{client.count} Invoices</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[14px] font-black text-slate-900">${(client.amount / 1000).toFixed(0)}K</p>
-                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">YTD</p>
+                      <p className="text-[14px] font-black text-slate-900 dark:text-white">${(client.amount / 1000).toFixed(0)}K</p>
+                      <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">YTD</p>
                     </div>
                   </div>
                 )) : (
                   <p className="text-center py-10 text-sm text-slate-400">No clients yet.</p>
                 )}
               </div>
-              <Link href="/clients" className="mt-6 w-full text-[11px] font-black text-slate-400 hover:text-slate-900 transition-colors border-t border-slate-50 pt-6 text-center uppercase tracking-widest">
+              <Link href="/clients" className="mt-6 w-full text-[11px] font-black text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors border-t border-slate-50 dark:border-slate-800 pt-6 text-center uppercase tracking-widest">
                 View All Clients
               </Link>
             </div>

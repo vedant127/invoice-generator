@@ -8,6 +8,7 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str
     business_name: Optional[str] = None
+    selected_template: str = "minimalist"
     role: UserRole = UserRole.OWNER
 
 class UserCreate(UserBase):
@@ -16,6 +17,7 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     business_name: Optional[str] = None
+    selected_template: Optional[str] = None
     password: Optional[str] = None
 
 class UserOut(UserBase):

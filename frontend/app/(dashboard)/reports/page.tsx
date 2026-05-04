@@ -116,26 +116,26 @@ export default function ReportsPage() {
   const yTicks = [yMax, yMax * 0.75, yMax * 0.5, yMax * 0.25, 0];
 
   const statusStyle = (s: string) => ({
-    Success: "bg-green-50 text-green-700",
-    Pending: "bg-amber-50 text-amber-700",
-    Failed:  "bg-red-50 text-red-700",
-  }[s] ?? "bg-slate-50 text-slate-600");
+    Success: "bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+    Pending: "bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400",
+    Failed:  "bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+  }[s] ?? "bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400");
 
   const statusDot = (s: string) => ({
     Success: "bg-green-500", Pending: "bg-amber-500", Failed: "bg-red-500",
-  }[s] ?? "bg-slate-400");
+  }[s] ?? "bg-slate-400 dark:bg-slate-500");
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 lg:px-10 xl:px-12 pb-24 bg-[#F3F4F6] font-sans">
+    <div className="flex-1 overflow-y-auto p-8 lg:px-10 xl:px-12 pb-24 bg-[#F3F4F6] dark:bg-slate-950 font-sans transition-colors">
       <div className="max-w-[1400px] mx-auto space-y-7">
 
         {/* ── Page Header ── */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Reports &amp; Analytics</h1>
-            <p className="text-sm text-slate-400 mt-0.5 font-medium">Monitor revenue, invoices, and client activity</p>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Reports &amp; Analytics</h1>
+            <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Monitor revenue, invoices, and client activity</p>
           </div>
-          <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:shadow-md transition-shadow">
+          <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:shadow-md transition-shadow">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
@@ -146,69 +146,69 @@ export default function ReportsPage() {
         {/* ── Stat Cards ── */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {/* Revenue */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-5">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>
                 </svg>
               </div>
-              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700">{stats.revenue_growth}</span>
+              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">{stats.revenue_growth}</span>
             </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Revenue</p>
-            <h3 className="text-[28px] font-black text-slate-900 tracking-tight leading-none">
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Total Revenue</p>
+            <h3 className="text-[28px] font-black text-slate-900 dark:text-white tracking-tight leading-none">
               ${(hasReal ? stats.total_revenue : 128430).toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </h3>
-            <p className="text-xs text-slate-400 mt-2 font-medium">vs. $114,200 last month</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">vs. $114,200 last month</p>
           </div>
 
           {/* Invoices */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-5">
-              <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-600 dark:text-orange-400">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                 </svg>
               </div>
-              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-50 text-amber-700">{hasReal ? stats.pending_count : 42} Pending</span>
+              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">{hasReal ? stats.pending_count : 42} Pending</span>
             </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Total Invoices</p>
-            <h3 className="text-[28px] font-black text-slate-900 tracking-tight leading-none">
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Total Invoices</p>
+            <h3 className="text-[28px] font-black text-slate-900 dark:text-white tracking-tight leading-none">
               {(hasReal ? stats.total_invoices : 1248).toLocaleString()}
             </h3>
-            <p className="text-xs text-slate-400 mt-2 font-medium">Average $1,050 per invoice</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">Average $1,050 per invoice</p>
           </div>
 
           {/* Clients */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 hover:shadow-md transition-shadow">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-5">
-              <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400">
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
               </div>
-              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-blue-50 text-blue-600">+4 new</span>
+              <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">+4 new</span>
             </div>
-            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 mb-1">Active Clients</p>
-            <h3 className="text-[28px] font-black text-slate-900 tracking-tight leading-none">
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Active Clients</p>
+            <h3 className="text-[28px] font-black text-slate-900 dark:text-white tracking-tight leading-none">
               {hasReal ? stats.active_clients : 84}
             </h3>
-            <p className="text-xs text-slate-400 mt-2 font-medium">Retention rate: 94%</p>
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 font-medium">Retention rate: 94%</p>
           </div>
         </div>
 
         {/* ── Revenue Chart ── */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <div>
-              <h2 className="text-lg font-black text-slate-900">Revenue Trends</h2>
-              <p className="text-sm text-slate-400 mt-0.5 font-medium">Monthly breakdown of your earnings</p>
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">Revenue Trends</h2>
+              <p className="text-sm text-slate-400 dark:text-slate-500 mt-0.5 font-medium">Monthly breakdown of your earnings</p>
             </div>
             <select
               value={timeRange}
               onChange={e => setTimeRange(e.target.value as any)}
-              className="h-10 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 bg-slate-50 px-4 outline-none appearance-none cursor-pointer"
+              className="h-10 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800 px-4 outline-none appearance-none cursor-pointer"
             >
               <option value="6m">Last 6 Months</option>
               <option value="12m">Last 12 Months</option>
@@ -221,7 +221,7 @@ export default function ReportsPage() {
               {/* Y-axis */}
               <div className="flex flex-col justify-between text-right shrink-0 pb-8" style={{ height: 270 }}>
                 {yTicks.map((t, i) => (
-                  <span key={i} className="text-[11px] font-mono text-slate-300 leading-none">
+                  <span key={i} className="text-[11px] font-mono text-slate-300 dark:text-slate-600 leading-none">
                     ${t >= 1000 ? `${(t / 1000).toFixed(0)}k` : t}
                   </span>
                 ))}
@@ -243,7 +243,7 @@ export default function ReportsPage() {
                       </linearGradient>
                     </defs>
                     {[0.25, 0.5, 0.75].map((p, i) => (
-                      <line key={i} x1="0" y1={SVG_H * p} x2={SVG_W} y2={SVG_H * p} stroke="#F1F5F9" strokeWidth="1" strokeDasharray="6,4" />
+                      <line key={i} x1="0" y1={SVG_H * p} x2={SVG_W} y2={SVG_H * p} stroke="currentColor" strokeWidth="1" strokeDasharray="6,4" className="text-slate-100 dark:text-slate-800/50" />
                     ))}
                     <path d={chartPoints.area} fill="url(#rptGrad)" className="transition-all duration-700" />
                     <path d={chartPoints.line} fill="none" stroke="#2563EB" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-all duration-700" />
@@ -269,7 +269,7 @@ export default function ReportsPage() {
                               });
                             }}
                           />
-                          <circle cx={pt.x} cy={pt.y} r={i === chartPoints.points.length - 1 ? "5" : "4"} fill="#2563EB" stroke="#fff" strokeWidth="2" className="transition-all duration-700" />
+                          <circle cx={pt.x} cy={pt.y} r={i === chartPoints.points.length - 1 ? "5" : "4"} fill="#2563EB" stroke="currentColor" strokeWidth="2" className="text-white dark:text-slate-900 transition-all duration-700" />
                         </g>
                       );
                     })}
@@ -280,18 +280,17 @@ export default function ReportsPage() {
                     )}
                   </svg>
                   {tooltip.visible && (
-                    <div className="absolute pointer-events-none z-20 bg-slate-900 text-white text-[12px] font-black rounded-xl px-3 py-2 shadow-lg whitespace-nowrap"
+                    <div className="absolute pointer-events-none z-20 bg-slate-900 dark:bg-slate-800 text-white text-[12px] font-black rounded-xl px-3 py-2 shadow-lg whitespace-nowrap"
                       style={{ left: tooltip.x, top: tooltip.y - 46, transform: "translateX(-50%)" }}>
-                      <span className="text-slate-400 text-[10px] block">{tooltip.label}</span>
+                      <span className="text-slate-400 dark:text-slate-500 text-[10px] block">{tooltip.label}</span>
                       ${tooltip.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
-                      <div className="absolute left-1/2 -translate-x-1/2 bottom-[-6px] w-0 h-0"
-                        style={{ borderLeft: "6px solid transparent", borderRight: "6px solid transparent", borderTop: "6px solid #0f172a" }} />
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-[-6px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-slate-900 dark:border-t-slate-800" />
                     </div>
                   )}
                 </div>
                 <div className="flex justify-between mt-3 pl-0">
                   {chartData.map((d, i) => (
-                    <span key={i} className={`text-[11px] font-black uppercase tracking-widest ${i === chartData.length - 1 ? "text-blue-600" : "text-slate-400"}`}>
+                    <span key={i} className={`text-[11px] font-black uppercase tracking-widest ${i === chartData.length - 1 ? "text-blue-600" : "text-slate-400 dark:text-slate-600"}`}>
                       {d.label}
                     </span>
                   ))}
@@ -305,36 +304,36 @@ export default function ReportsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-7 pb-8">
 
           {/* Recent Payments — 2 cols */}
-          <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-            <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center shrink-0">
-              <h2 className="text-lg font-black text-slate-900">Recent Payments</h2>
-              <Link href="/invoices" className="text-sm font-black text-blue-600 hover:text-blue-700 transition-colors">View All</Link>
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col transition-colors">
+            <div className="px-8 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center shrink-0">
+              <h2 className="text-lg font-black text-slate-900 dark:text-white">Recent Payments</h2>
+              <Link href="/invoices" className="text-sm font-black text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors">View All</Link>
             </div>
             <div className="overflow-x-auto flex-1">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50/60 border-b border-slate-100">
+                  <tr className="bg-slate-50/60 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
                     {["Payment ID", "Client", "Invoice #", "Date", "Amount", "Status"].map(h => (
-                      <th key={h} className={`py-3.5 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest ${h === "Amount" ? "text-right" : ""}`}>{h}</th>
+                      <th key={h} className={`py-3.5 px-6 text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ${h === "Amount" ? "text-right" : ""}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-50">
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
                   {payments.map(pay => (
-                    <tr key={pay.id} className="hover:bg-slate-50/60 transition-colors cursor-pointer group">
-                      <td className="py-4 px-6 text-[13px] font-bold text-blue-600 group-hover:underline">{pay.id}</td>
+                    <tr key={pay.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/60 transition-colors cursor-pointer group">
+                      <td className="py-4 px-6 text-[13px] font-bold text-blue-600 dark:text-blue-400 group-hover:underline">{pay.id}</td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0"
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-black text-white shrink-0 shadow-sm"
                             style={{ backgroundColor: pay.color }}>
                             {pay.initials}
                           </div>
-                          <span className="text-[13px] font-bold text-slate-800">{pay.client}</span>
+                          <span className="text-[13px] font-bold text-slate-800 dark:text-slate-200">{pay.client}</span>
                         </div>
                       </td>
-                      <td className="py-4 px-6 text-[12px] text-slate-400 font-medium">{pay.invoice}</td>
-                      <td className="py-4 px-6 text-[12px] text-slate-500 font-medium">{pay.date}</td>
-                      <td className="py-4 px-6 text-[13px] font-black text-slate-900 text-right">
+                      <td className="py-4 px-6 text-[12px] text-slate-400 dark:text-slate-500 font-medium">{pay.invoice}</td>
+                      <td className="py-4 px-6 text-[12px] text-slate-500 dark:text-slate-400 font-medium">{pay.date}</td>
+                      <td className="py-4 px-6 text-[13px] font-black text-slate-900 dark:text-white text-right">
                         ${pay.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </td>
                       <td className="py-4 px-6">
@@ -354,10 +353,10 @@ export default function ReportsPage() {
           <div className="flex flex-col gap-6">
 
             {/* Top Clients */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex-1">
-              <div className="px-6 py-5 border-b border-slate-100 flex justify-between items-center">
-                <h2 className="text-base font-black text-slate-900">Top Clients</h2>
-                <span className="material-symbols-outlined text-slate-300 text-[20px]">star</span>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex-1 transition-colors">
+              <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <h2 className="text-base font-black text-slate-900 dark:text-white">Top Clients</h2>
+                <span className="material-symbols-outlined text-slate-300 dark:text-slate-700 text-[20px]">star</span>
               </div>
               <div className="p-3">
                 {(topClients.length > 0 ? topClients : [
@@ -365,20 +364,20 @@ export default function ReportsPage() {
                   { name: "Design Studio Inc",  initials: "DS", amount: 9800,  email: "studio@ds.com" },
                   { name: "Momentum Kings",     initials: "MK", amount: 7200,  email: "mk@momentum.io" },
                 ]).map((c, i) => (
-                  <div key={i} className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer">
+                  <div key={i} className="flex items-center justify-between px-3 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
                     <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm text-white shrink-0"
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center font-black text-sm text-white shrink-0 shadow-sm"
                         style={{ backgroundColor: AVATAR_COLORS[i % AVATAR_COLORS.length] }}>
                         {c.initials}
                       </div>
                       <div>
-                        <p className="text-[13px] font-black text-slate-900 leading-tight">{c.name}</p>
-                        <p className="text-[11px] text-slate-400 font-medium truncate max-w-[130px]">{c.email}</p>
+                        <p className="text-[13px] font-black text-slate-900 dark:text-white leading-tight">{c.name}</p>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium truncate max-w-[130px]">{c.email}</p>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="text-[13px] font-black text-slate-900">${(c.amount / 1000).toFixed(1)}k</p>
-                      <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Total Billed</p>
+                      <p className="text-[13px] font-black text-slate-900 dark:text-white">${(c.amount / 1000).toFixed(1)}k</p>
+                      <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Total Billed</p>
                     </div>
                   </div>
                 ))}
@@ -386,7 +385,7 @@ export default function ReportsPage() {
             </div>
 
             {/* CTA Card */}
-            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200">
+            <div className="bg-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-200 dark:shadow-none">
               <h3 className="text-base font-black mb-2">Automate your invoicing</h3>
               <p className="text-sm text-blue-100 mb-5 leading-relaxed">Connect your bank to auto-reconcile payments and save 10+ hours a week.</p>
               <button className="w-full py-2.5 bg-white text-blue-600 font-black text-sm rounded-xl hover:bg-blue-50 transition-colors active:scale-95">

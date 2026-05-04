@@ -4,6 +4,21 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import { Plus, Trash2, Eye, EyeOff, Send, Save, ChevronLeft, Download, Maximize2 } from "lucide-react";
 import Link from "next/link";
+import { 
+  StandardPreview, 
+  ModernMinimalPreview, 
+  CreativeEdgePreview, 
+  CorporateBlueprintPreview, 
+  ElegantSerifPreview 
+} from "@/components/dashboard/TemplatePreview";
+
+const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
+  standard: StandardPreview,
+  "modern-minimal": ModernMinimalPreview,
+  "creative-edge": CreativeEdgePreview,
+  "corporate-blueprint": CorporateBlueprintPreview,
+  "elegant-serif": ElegantSerifPreview,
+};
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -11,8 +26,11 @@ export default function NewInvoicePage() {
   const [showPreview, setShowPreview] = useState(true);
   const [isCurrencyDropdownOpen, setIsCurrencyDropdownOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("standard");
+  const [isTemplateDropdownOpen, setIsTemplateDropdownOpen] = useState(false);
   
   const downloadPDF = async () => {
+    // ... (rest of downloadPDF logic remains same)
     if (isDownloading) return;
     setIsDownloading(true);
 
@@ -66,7 +84,7 @@ export default function NewInvoicePage() {
   const [clientId, setClientId] = useState("");
   const [clientAddress, setClientAddress] = useState("");
   const [clientName, setClientName] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState(`INV-${Math.floor(1000 + Math.random() * 9000)}`);
+  const [invoiceNumber, setInvoiceNumber] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
   const [currency, setCurrency] = useState("USD");
@@ -75,10 +93,21 @@ export default function NewInvoicePage() {
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("Thank you for your business. Please make payment within 7 days. Contact us with any questions regarding this invoice or payment details.");
 
+  // Generate invoice number only on the client to avoid SSR/hydration mismatch
   useEffect(() => {
-    // Fetch clients
+    setInvoiceNumber(`INV-${Math.floor(1000 + Math.random() * 9000)}`);
+  }, []);
+
+  useEffect(() => {
+    // Fetch clients and user preference
     api.get("/api/v1/clients").then(res => {
       setClients(res.data);
+    }).catch(err => console.error(err));
+
+    api.get("/api/v1/users/me").then(res => {
+      if (res.data.selected_template) {
+        setSelectedTemplate(res.data.selected_template);
+      }
     }).catch(err => console.error(err));
   }, []);
 
@@ -134,6 +163,24 @@ export default function NewInvoicePage() {
       console.error(err);
       alert("Failed to save invoice.");
     }
+  };
+
+  const PreviewComponent = TEMPLATE_COMPONENTS[selectedTemplate] || StandardPreview;
+
+  const invoiceData = {
+    invoiceNumber,
+    issueDate,
+    dueDate,
+    clientName,
+    clientAddress,
+    items,
+    subtotal,
+    taxPercentage,
+    taxAmount,
+    discount,
+    total,
+    currency,
+    notes
   };
 
   return (
@@ -396,7 +443,37 @@ export default function NewInvoicePage() {
           <div className="col-span-12 lg:col-span-6 xl:col-span-5 relative" data-purpose="invoice-preview">
             <div className="lg:sticky lg:top-8 no-scrollbar max-h-[calc(100vh-6rem)] overflow-y-auto pb-10">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="font-heading font-semibold text-slate-700">Live Preview</h3>
+                <div className="flex items-center gap-4">
+                  <h3 className="font-heading font-semibold text-slate-700">Live Preview</h3>
+                  <div className="relative">
+                    <button 
+                      onClick={() => setIsTemplateDropdownOpen(!isTemplateDropdownOpen)}
+                      className="text-[10px] bg-slate-100 px-2 py-1 rounded-md font-black uppercase tracking-widest text-slate-500 hover:bg-slate-200 transition-colors flex items-center gap-1"
+                    >
+                      Template: {selectedTemplate}
+                      <span className="material-symbols-outlined text-[12px]">expand_more</span>
+                    </button>
+                    {isTemplateDropdownOpen && (
+                      <>
+                        <div className="fixed inset-0 z-10" onClick={() => setIsTemplateDropdownOpen(false)}></div>
+                        <div className="absolute left-0 mt-2 w-48 bg-white border border-gray-100 rounded-xl shadow-xl py-2 z-20">
+                          {Object.keys(TEMPLATE_COMPONENTS).map((tpl) => (
+                            <button
+                              key={tpl}
+                              onClick={() => {
+                                setSelectedTemplate(tpl);
+                                setIsTemplateDropdownOpen(false);
+                              }}
+                              className={`w-full text-left px-4 py-2 text-xs font-bold hover:bg-slate-50 transition-colors uppercase tracking-widest ${selectedTemplate === tpl ? 'text-brand' : 'text-slate-600'}`}
+                            >
+                              {tpl}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
                 <div className="flex items-center gap-2">
                   <button className="p-1.5 hover:bg-gray-100 rounded-lg text-slate-400 transition-colors" title="Expand">
                     <Maximize2 className="w-4 h-4" />
@@ -413,95 +490,8 @@ export default function NewInvoicePage() {
               </div>
               
               {/* Invoice Paper */}
-              <div data-purpose="invoice-paper" className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 sm:p-10 text-slate-900 min-h-[842px] flex flex-col font-sans">
-                <div className="flex justify-between items-start mb-12">
-                  <div>
-                    <h1 className="text-4xl font-heading font-bold tracking-tight mb-1 text-slate-900">Invoice</h1>
-                    <p className="text-slate-400 text-xs">Invoice number: <span className="font-bold text-slate-700">#{invoiceNumber}</span></p>
-                  </div>
-                  <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center shadow-md">
-                    <span className="text-white font-bold text-lg font-heading">IP</span>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-10 mb-12">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-3">Billed by</p>
-                    <div className="text-sm">
-                      <p className="font-bold mb-1 text-slate-800">InvoicePro</p>
-                      <p className="text-slate-500 leading-relaxed">hello@invoicepro.com</p>
-                      <p className="text-slate-500 leading-relaxed mb-4">123 Business Rd, Tech City,<br/>CA 94103</p>
-                      
-                      <p className="text-slate-500 text-xs">Date issued:</p>
-                      <p className="font-bold text-slate-800">{new Date(issueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'})}</p>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold mb-3">Billed to</p>
-                    <div className="text-sm">
-                      <p className="font-bold mb-1 text-slate-800">{clientName || "Client Name"}</p>
-                      {clientId ? (
-                        <p className="text-slate-500 leading-relaxed whitespace-pre-line mb-4">{clientAddress || "Client Address"}</p>
-                      ) : (
-                        <p className="text-slate-500 leading-relaxed mb-4 italic">Select a client to see<br/>their address here.</p>
-                      )}
-                      
-                      <p className="text-slate-500 text-xs">Due Date:</p>
-                      <p className="font-bold text-slate-800">{new Date(dueDate).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric'})}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <table className="w-full text-left text-sm mb-12">
-                  <thead>
-                    <tr className="border-b border-gray-100 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-                      <th className="py-4">Items</th>
-                      <th className="py-4 text-center">QTY</th>
-                      <th className="py-4 text-center">Rate</th>
-                      <th className="py-4 text-right">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-50">
-                    {items.map((item, i) => (
-                      <tr key={i}>
-                        <td className="py-5 font-bold text-slate-800">{item.description || "Item description"}</td>
-                        <td className="py-5 text-center text-slate-600">{item.quantity}</td>
-                        <td className="py-5 text-center text-slate-600">${item.unit_price.toFixed(2)}</td>
-                        <td className="py-5 text-right font-bold text-slate-800">${(item.quantity * item.unit_price).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                
-                <div className="flex justify-end mb-12">
-                  <div className="w-full max-w-[200px] space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-400">Subtotal</span>
-                      <span className="font-bold text-slate-700">${subtotal.toFixed(2)}</span>
-                    </div>
-                    {taxPercentage > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Tax</span>
-                        <span className="font-bold text-slate-700">{taxPercentage}% (${taxAmount.toFixed(2)})</span>
-                      </div>
-                    )}
-                    {discount > 0 && (
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-400">Discount</span>
-                        <span className="font-bold text-slate-700">-${discount.toFixed(2)}</span>
-                      </div>
-                    )}
-                    <div className="pt-3 border-t border-gray-100 flex justify-between items-center">
-                      <span className="text-xs font-bold uppercase text-slate-400">Total</span>
-                      <span className="text-2xl font-heading font-bold text-brand">${total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mt-auto pt-10 border-t border-dashed border-gray-200">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Notes:</p>
-                  <p className="text-xs text-slate-500 leading-relaxed max-w-sm whitespace-pre-line">{notes}</p>
-                </div>
+              <div data-purpose="invoice-paper" className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden min-h-[842px]">
+                <PreviewComponent data={invoiceData} />
               </div>
             </div>
           </div>

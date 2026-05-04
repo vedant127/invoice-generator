@@ -79,14 +79,14 @@ export default function ClientsPage() {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 lg:px-12 xl:px-16 pb-24 bg-[#F8F9FB] font-sans animate-in fade-in duration-700">
+    <div className="flex-1 overflow-y-auto p-8 lg:px-12 xl:px-16 pb-24 bg-[#F8F9FB] dark:bg-slate-950 font-sans animate-in fade-in duration-700 transition-colors">
       <div className="max-w-[1400px] mx-auto space-y-8">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-black text-slate-900 tracking-tight">Clients</h1>
-            <p className="text-slate-500 font-medium mt-1">Manage your customer relationships and billing profiles.</p>
+            <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Clients</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage your customer relationships and billing profiles.</p>
           </div>
           <button 
             onClick={() => setIsModalOpen(true)}
@@ -105,26 +105,26 @@ export default function ClientsPage() {
               type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white border border-slate-200 text-slate-900 focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 outline-none transition-all font-bold text-base placeholder:text-slate-400 shadow-sm" 
+              className="w-full h-14 pl-12 pr-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 outline-none transition-all font-bold text-base placeholder:text-slate-400 shadow-sm" 
               placeholder="Search by name, company, or email..." 
             />
           </div>
-          <div className="flex items-center gap-4 bg-white px-6 py-3 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-4 bg-white dark:bg-slate-900 px-6 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
             <div className="flex -space-x-2">
               {clients.slice(0, 3).map((_, i) => (
-                <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${getAvatarColor(i)} flex items-center justify-center text-[10px] font-black`}>
+                <div key={i} className={`w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 ${getAvatarColor(i)} flex items-center justify-center text-[10px] font-black`}>
                   {String.fromCharCode(65 + i)}
                 </div>
               ))}
               {clients.length > 3 && (
-                <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500">
+                <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-500">
                   +{clients.length - 3}
                 </div>
               )}
             </div>
             <div>
               <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Clients</p>
-              <p className="text-sm font-black text-slate-900">{clients.length} Active</p>
+              <p className="text-sm font-black text-slate-900 dark:text-white">{clients.length} Active</p>
             </div>
           </div>
         </div>
@@ -134,12 +134,12 @@ export default function ClientsPage() {
             Loading client database...
           </div>
         ) : filteredClients.length === 0 ? (
-          <div className="bg-white rounded-[2.5rem] border border-slate-200 p-24 text-center shadow-sm">
-            <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner rotate-6">
-              <Users className="w-12 h-12 text-blue-200" />
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 p-24 text-center shadow-sm">
+            <div className="w-24 h-24 bg-blue-50 dark:bg-blue-900/20 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner rotate-6">
+              <Users className="w-12 h-12 text-blue-200 dark:text-blue-800" />
             </div>
-            <h3 className="text-2xl font-black text-slate-900 mb-2">No clients found</h3>
-            <p className="text-slate-500 font-medium max-w-xs mx-auto mb-10">Add your first client to start creating professional invoices for them.</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">No clients found</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xs mx-auto mb-10">Add your first client to start creating professional invoices for them.</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="inline-flex items-center gap-2 px-10 py-4 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 transition-all shadow-xl active:scale-95"
@@ -150,7 +150,7 @@ export default function ClientsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredClients.map((client, index) => (
-              <article key={client.id} className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm hover:border-blue-200 hover:shadow-xl transition-all group flex flex-col h-full relative overflow-hidden cursor-pointer">
+              <article key={client.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] p-8 shadow-sm hover:border-blue-200 dark:hover:border-blue-800 hover:shadow-xl transition-all group flex flex-col h-full relative overflow-hidden cursor-pointer">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
                 
                 <div className="flex justify-between items-start mb-8 relative z-10">
@@ -159,51 +159,51 @@ export default function ClientsPage() {
                       {(client.company_name || client.name || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="overflow-hidden">
-                      <h2 className="text-xl font-black text-slate-900 leading-tight mb-1 truncate">{client.company_name || client.name}</h2>
+                      <h2 className="text-xl font-black text-slate-900 dark:text-white leading-tight mb-1 truncate">{client.company_name || client.name}</h2>
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{client.industry || "General"}</p>
                       </div>
                     </div>
                   </div>
-                  <button className="text-slate-300 hover:text-blue-600 transition-colors p-2 -mr-2 rounded-xl hover:bg-slate-50">
-                    <MoreVertical className="w-5 h-5" />
+                  <button className="text-slate-300 hover:text-blue-600 transition-colors p-2 -mr-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800">
+                    < MoreVertical className="w-5 h-5" />
                   </button>
                 </div>
 
                 <div className="space-y-4 mb-10 flex-grow relative z-10">
-                  <div className="flex items-center gap-3 text-slate-500 group/link">
-                    <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                  <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400 group/link">
+                    <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
                       <Mail className="w-4 h-4" />
                     </div>
-                    <a className="text-sm font-bold text-slate-600 hover:text-blue-600 transition-colors truncate" href={`mailto:${client.email}`}>{client.email}</a>
+                    <a className="text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors truncate" href={`mailto:${client.email}`}>{client.email}</a>
                   </div>
                   {client.phone && (
-                    <div className="flex items-center gap-3 text-slate-500">
-                      <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                    <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                      <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
                         <Phone className="w-4 h-4" />
                       </div>
-                      <span className="text-sm font-bold text-slate-600 truncate">{client.phone}</span>
+                      <span className="text-sm font-bold text-slate-600 dark:text-slate-300 truncate">{client.phone}</span>
                     </div>
                   )}
                   {client.address && (
-                    <div className="flex items-center gap-3 text-slate-500">
-                      <div className="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100">
+                    <div className="flex items-center gap-3 text-slate-500 dark:text-slate-400">
+                      <div className="w-9 h-9 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700">
                         <MapPin className="w-4 h-4" />
                       </div>
-                      <span className="text-sm font-bold text-slate-600 truncate">{client.address}</span>
+                      <span className="text-sm font-bold text-slate-600 dark:text-slate-300 truncate">{client.address}</span>
                     </div>
                   )}
                 </div>
 
-                <div className="pt-8 border-t border-slate-100 flex justify-between items-center bg-slate-50/50 -mx-8 -mb-8 px-8 py-6 rounded-b-[2rem] relative z-10">
+                <div className="pt-8 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30 -mx-8 -mb-8 px-8 py-6 rounded-b-[2rem] relative z-10">
                   <div className="flex flex-col">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Revenue</span>
-                    <span className="text-2xl font-black text-slate-900 tracking-tighter">
+                    <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">
                       ${(client.total_billed || 0).toLocaleString('en-US', {minimumFractionDigits: 2})}
                     </span>
                   </div>
-                  <div className="bg-white text-blue-600 px-4 py-2 rounded-xl text-xs font-black border border-slate-200 shadow-sm flex items-center gap-2 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                  <div className="bg-white dark:bg-slate-900 text-blue-600 px-4 py-2 rounded-xl text-xs font-black border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-2 group-hover:bg-blue-600 group-hover:text-white transition-all">
                     {client.invoice_count || 0} Invoices
                     <ChevronRight className="w-3 h-3" />
                   </div>
@@ -217,13 +217,13 @@ export default function ClientsPage() {
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
-            <div className="relative bg-white rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden animate-in slide-in-from-bottom-8 zoom-in-95 duration-500">
-              <div className="px-10 py-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div className="relative bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-xl overflow-hidden animate-in slide-in-from-bottom-8 zoom-in-95 duration-500 transition-colors">
+              <div className="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
                 <div>
-                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">Add New Client</h2>
-                  <p className="text-sm text-slate-500 font-medium mt-1">Create a new profile for your customer.</p>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Add New Client</h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Create a new profile for your customer.</p>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 rounded-xl transition-colors">
+                <button onClick={() => setIsModalOpen(false)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
                   <X className="w-6 h-6 text-slate-400" />
                 </button>
               </div>
@@ -238,7 +238,7 @@ export default function ClientsPage() {
                         type="text" required
                         value={formData.company_name}
                         onChange={(e) => setFormData({...formData, company_name: e.target.value})}
-                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 bg-slate-50/50 focus:bg-white"
+                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800"
                         placeholder="e.g. Acme Corp Inc."
                       />
                     </div>
@@ -251,7 +251,7 @@ export default function ClientsPage() {
                         type="text" required
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
-                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 bg-slate-50/50 focus:bg-white"
+                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800"
                         placeholder="John Smith"
                       />
                     </div>
@@ -262,7 +262,7 @@ export default function ClientsPage() {
                       type="text"
                       value={formData.industry}
                       onChange={(e) => setFormData({...formData, industry: e.target.value})}
-                      className="w-full h-12 px-4 rounded-xl border border-slate-200 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 bg-slate-50/50 focus:bg-white"
+                      className="w-full h-12 px-4 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800"
                       placeholder="e.g. SaaS, Design"
                     />
                   </div>
@@ -274,7 +274,7 @@ export default function ClientsPage() {
                         type="email" required
                         value={formData.email}
                         onChange={(e) => setFormData({...formData, email: e.target.value})}
-                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 bg-slate-50/50 focus:bg-white"
+                        className="w-full h-12 pl-12 pr-4 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800"
                         placeholder="billing@acme.com"
                       />
                     </div>
@@ -286,7 +286,7 @@ export default function ClientsPage() {
                       <textarea 
                         value={formData.address}
                         onChange={(e) => setFormData({...formData, address: e.target.value})}
-                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300 h-28 resize-none bg-slate-50/50 focus:bg-white"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800 focus:border-blue-600 outline-none transition-all font-bold text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 h-28 resize-none bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800"
                         placeholder="Street address, Suite, City, State..."
                       ></textarea>
                     </div>
@@ -297,7 +297,7 @@ export default function ClientsPage() {
                   <button 
                     type="button" 
                     onClick={() => setIsModalOpen(false)}
-                    className="flex-1 h-14 border border-slate-200 text-slate-600 font-black rounded-2xl hover:bg-slate-50 transition-all active:scale-95"
+                    className="flex-1 h-14 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-black rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
                   >
                     Cancel
                   </button>

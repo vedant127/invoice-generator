@@ -114,13 +114,13 @@ export default function BillingOverview({ stats }: BillingOverviewProps) {
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-7 flex flex-col gap-6">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-7 flex flex-col gap-6 transition-colors">
       {/* Header */}
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-black text-slate-900">Billing Overview</h2>
+        <h2 className="text-lg font-black text-slate-900 dark:text-white">Billing Overview</h2>
         <Link
           href="/invoices"
-          className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors"
+          className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 transition-colors"
         >
           Details
         </Link>
@@ -128,17 +128,17 @@ export default function BillingOverview({ stats }: BillingOverviewProps) {
 
       {/* Distribution Label + Total */}
       <div className="flex justify-between items-center">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">
           Invoice Status Distribution
         </span>
-        <span className="text-sm font-black text-slate-900">
+        <span className="text-sm font-black text-slate-900 dark:text-white">
           {data.total_invoices.toLocaleString()}{" "}
-          <span className="text-slate-400 font-medium">Total</span>
+          <span className="text-slate-400 dark:text-slate-500 font-medium">Total</span>
         </span>
       </div>
 
       {/* Segmented Progress Bar */}
-      <div className="w-full h-3 rounded-full overflow-hidden flex gap-[2px]">
+      <div className="w-full h-3 rounded-full overflow-hidden flex gap-[2px] bg-slate-100 dark:bg-slate-800">
         {hasRealData ? (
           segments.map((seg) => {
             const pct = (seg.count / total) * 100;
@@ -186,18 +186,18 @@ export default function BillingOverview({ stats }: BillingOverviewProps) {
               <div className="flex items-center gap-1.5">
                 {seg.icon}
                 <span
-                  className="text-[10px] font-black uppercase tracking-widest"
+                  className="text-[10px] font-black uppercase tracking-widest opacity-90 dark:opacity-100"
                   style={{ color: seg.textColor }}
                 >
                   {seg.label}
                 </span>
               </div>
               {/* Count */}
-              <p className="text-2xl font-black text-slate-900 leading-none">
+              <p className="text-2xl font-black text-slate-900 dark:text-white leading-none">
                 {seg.count.toLocaleString()}
               </p>
               {/* Percentage */}
-              <p className="text-[11px] font-medium text-slate-400">
+              <p className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
                 {pct > 0 ? `${pct}% of total` : "—"}
               </p>
             </div>
@@ -207,7 +207,7 @@ export default function BillingOverview({ stats }: BillingOverviewProps) {
 
       {/* Demo data notice */}
       {!hasRealData && (
-        <p className="text-[10px] text-slate-300 font-medium text-right -mt-2">
+        <p className="text-[10px] text-slate-300 dark:text-slate-600 font-medium text-right -mt-2">
           * Showing sample data — create invoices to see real stats
         </p>
       )}
