@@ -9,7 +9,11 @@ import {
   ModernMinimalPreview, 
   CreativeEdgePreview, 
   CorporateBlueprintPreview, 
-  ElegantSerifPreview 
+  ElegantSerifPreview,
+  GoldifyAdapted,
+  CorporateAdapted,
+  MinimalAdapted,
+  RetroAdapted
 } from "@/components/dashboard/TemplatePreview";
 
 const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
@@ -18,6 +22,10 @@ const TEMPLATE_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "creative-edge": CreativeEdgePreview,
   "corporate-blueprint": CorporateBlueprintPreview,
   "elegant-serif": ElegantSerifPreview,
+  "goldify": GoldifyAdapted,
+  "corporate-gold": CorporateAdapted,
+  "minimal-swiss": MinimalAdapted,
+  "retro-terracotta": RetroAdapted,
 };
 
 export default function NewInvoicePage() {

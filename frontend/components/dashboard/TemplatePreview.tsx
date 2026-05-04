@@ -1,4 +1,8 @@
 "use client";
+import GoldifyTemplate from "@/components/templates/GoldifyTemplate";
+import CorporateTemplate from "@/components/templates/CorporateTemplate";
+import MinimalTemplate from "@/components/templates/MinimalTemplate";
+import RetroTemplate from "@/components/templates/RetroTemplate";
 
 interface InvoiceItem {
   description: string;
@@ -441,4 +445,50 @@ export function ElegantSerifPreview({ data = DEFAULT_DATA }: { data?: InvoiceDat
       </div>
     </div>
   );
+}
+
+// ── Adapted High-Fidelity Templates (From Provided Files) ──
+
+function adaptData(data: InvoiceData) {
+  return {
+    company: "InvoicePro", // Default or from data
+    email: "hello@invoicepro.com",
+    phone: "+1 555 000 0000",
+    address: "123 Business Rd, Tech City, CA 94103",
+    bank: "STRIPE BANK",
+    account: "XXXX-XXXX-XXXX",
+    swift: "STRIPEXX",
+    taxId: "TAX-999",
+    client: data.clientName,
+    clientEmail: "client@example.com",
+    invoiceNo: data.invoiceNumber,
+    date: data.issueDate,
+    dueDate: data.dueDate,
+    currency: data.currency === "USD" ? "$" : data.currency === "INR" ? "₹" : data.currency,
+    taxRate: data.taxPercentage,
+    discountRate: (data.discount / (data.subtotal || 1)) * 100,
+    notes: data.notes,
+    items: data.items.map((item, idx) => ({
+      id: String(idx),
+      desc: item.description,
+      rate: item.unit_price,
+      qty: item.quantity,
+    })),
+  };
+}
+
+export function GoldifyAdapted({ data = DEFAULT_DATA }: { data?: InvoiceData }) {
+  return <GoldifyTemplate data={adaptData(data) as any} />;
+}
+
+export function CorporateAdapted({ data = DEFAULT_DATA }: { data?: InvoiceData }) {
+  return <CorporateTemplate data={adaptData(data) as any} />;
+}
+
+export function MinimalAdapted({ data = DEFAULT_DATA }: { data?: InvoiceData }) {
+  return <MinimalTemplate data={adaptData(data) as any} />;
+}
+
+export function RetroAdapted({ data = DEFAULT_DATA }: { data?: InvoiceData }) {
+  return <RetroTemplate data={adaptData(data) as any} />;
 }
