@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/api";
 import {
@@ -14,6 +14,7 @@ import {
   MinimalAdapted,
   RetroAdapted,
 } from "@/components/dashboard/TemplatePreview";
+import { Upload, X, FileJson, CheckCircle2, Info, ChevronRight, Plus } from "lucide-react";
 
 // ─── Template metadata ──────────────────────────────────────────────────────
 const TEMPLATE_META = [
@@ -134,7 +135,7 @@ function InvoiceThumbnail({ template }) {
 }
 
 // ─── Template Card ─────────────────────────────────────────────────────────
-function TemplateCard({ template, isSelected, onSelect }) {
+function TemplateCard({ template, isSelected, onSelect, onGenerate }) {
   return (
     <div
       onClick={() => onSelect(template.id)}
@@ -202,25 +203,35 @@ function TemplateCard({ template, isSelected, onSelect }) {
 
         <div style={{ display: "flex", gap: 7 }}>
           <button
-            onClick={(e) => { e.stopPropagation(); onSelect(template.id); }}
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              if (isSelected) {
+                onGenerate();
+              } else {
+                onSelect(template.id);
+              }
+            }}
             style={{
-              flex: 1, padding: "7px 0", fontSize: 11.5, fontWeight: 600,
-              borderRadius: 7, border: "none", cursor: "pointer",
+              flex: 1, padding: "8px 0", fontSize: 11.5, fontWeight: 700,
+              borderRadius: 8, border: "none", cursor: "pointer",
               background: isSelected ? "#2563EB" : "#EFF6FF",
               color: isSelected ? "#fff" : "#2563EB",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-              letterSpacing: "0.04em",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              letterSpacing: "0.03em",
+              boxShadow: isSelected ? "0 4px 12px rgba(37,99,235,0.2)" : "none",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              animation: isSelected ? "slideInUp 0.3s ease-out" : "none",
             }}
           >
             {isSelected ? (
               <>
-                <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                  <path d="M2 6l3 3 5-5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 7h10M7 2l5 5-5 5" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                SELECTED
+                CREATE INVOICE
               </>
             ) : (
-              "SELECT TEMPLATE"
+              "USE TEMPLATE"
             )}
           </button>
 
@@ -249,6 +260,13 @@ export default function TemplatesPage() {
   const [activeCategory, setActiveCategory] = useState("ALL TEMPLATES");
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [loading, setLoading] = useState(true);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounter = useRef(0);
 
   // Sync with Backend
   useEffect(() => {
@@ -266,6 +284,59 @@ export default function TemplatesPage() {
       setSelectedTemplate(id);
     } catch (err) {
       console.error("Failed to update template", err);
+    }
+  };
+
+  const handleMockUpload = () => {
+    setIsUploading(true);
+    setTimeout(() => {
+      setIsUploading(false);
+      setUploadSuccess(true);
+      setTimeout(() => {
+        setUploadSuccess(false);
+        setIsUploadModalOpen(false);
+      }, 2000);
+    }, 1500);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+      handleMockUpload();
+    }
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setSelectedFile(e.dataTransfer.files[0]);
+      handleMockUpload();
     }
   };
 
@@ -289,6 +360,10 @@ export default function TemplatesPage() {
     <>
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         *, *::before, *::after { box-sizing: border-box; }
       `}</style>
 
@@ -303,19 +378,37 @@ export default function TemplatesPage() {
                 ensure consistency with your professional identity.
               </p>
             </div>
-            <button
-              style={{
-                display: "flex", alignItems: "center", gap: 6,
-                padding: "8px 16px", fontSize: 13, fontWeight: 600,
-                borderRadius: 8, border: "1.5px solid #D1D5DB",
-                background: "#fff", color: "#374151", cursor: "pointer",
-              }}
-            >
-              <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
-                <path d="M7 1v12M1 7h12" stroke="#6B7280" strokeWidth="1.6" strokeLinecap="round" />
-              </svg>
-              Upload custom
-            </button>
+            <div style={{ display: "flex", gap: 10 }}>
+              {selectedTemplate && (
+                <button
+                  onClick={() => router.push("/invoices/new")}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "8px 18px", fontSize: 13, fontWeight: 700,
+                    borderRadius: 8, border: "none",
+                    background: "#2563EB", color: "#fff", cursor: "pointer",
+                    boxShadow: "0 4px 10px rgba(37,99,235,0.2)",
+                    transition: "transform 0.15s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+                >
+                  Generate Invoice →
+                </button>
+              )}
+              <button
+                onClick={() => setIsUploadModalOpen(true)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "8px 16px", fontSize: 13, fontWeight: 600,
+                  borderRadius: 8, border: "1.5px solid #D1D5DB",
+                  background: "#fff", color: "#374151", cursor: "pointer",
+                }}
+              >
+                <Upload width={13} height={13} strokeWidth={2.5} />
+                Upload custom
+              </button>
+            </div>
           </div>
 
           {/* Category tabs */}
@@ -355,6 +448,7 @@ export default function TemplatesPage() {
                 template={t}
                 isSelected={selectedTemplate === t.id}
                 onSelect={handleSelect}
+                onGenerate={() => router.push("/invoices/new")}
               />
             ))}
           </div>
@@ -387,6 +481,122 @@ export default function TemplatesPage() {
               >
                 Generate Invoice →
               </button>
+            </div>
+          )}
+
+          {/* Upload Modal */}
+          {isUploadModalOpen && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <div 
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" 
+                onClick={() => !isUploading && setIsUploadModalOpen(false)}
+              ></div>
+              <div className="relative bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in slide-in-from-bottom-8 zoom-in-95 duration-500">
+                <div className="px-10 py-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+                  <div>
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Upload Custom Template</h2>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Import your own design schema.</p>
+                  </div>
+                  <button onClick={() => setIsUploadModalOpen(false)} className="w-10 h-10 flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl transition-colors">
+                    <X className="w-6 h-6 text-slate-400" />
+                  </button>
+                </div>
+
+                <div className="p-10">
+                  {uploadSuccess ? (
+                    <div className="py-12 text-center animate-in zoom-in duration-300">
+                      <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+                      </div>
+                      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Upload Successful!</h3>
+                      <p className="text-slate-500 dark:text-slate-400 font-medium">Your template is being processed and will appear soon.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-8">
+                      <div 
+                        onDragEnter={handleDragEnter}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        onClick={() => !isUploading && fileInputRef.current?.click()}
+                        className={`relative border-2 border-dashed rounded-[2rem] p-12 text-center transition-all cursor-pointer group overflow-hidden
+                          ${isDragging ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-900/20 scale-[1.02]' : 'border-slate-200 dark:border-slate-800 hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-900/10'}
+                          ${isUploading ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-900/10' : ''}
+                        `}
+                      >
+                        {/* Invisible Drag Target Overlay */}
+                        <div 
+                          className="absolute inset-0 z-30"
+                          style={{ display: isDragging ? 'block' : 'none' }}
+                        />
+
+                        <input 
+                          type="file"
+                          ref={fileInputRef}
+                          style={{ display: "none" }}
+                          accept=".json,.html"
+                          onChange={handleFileSelect}
+                        />
+                        
+                        {isDragging && (
+                          <div className="absolute inset-0 bg-blue-600/10 backdrop-blur-[2px] rounded-[2rem] flex items-center justify-center border-2 border-blue-600 border-dashed animate-in fade-in zoom-in duration-200 z-40 pointer-events-none">
+                            <div className="bg-white dark:bg-slate-900 px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3 border border-blue-100 dark:border-blue-900/50 transform -translate-y-2">
+                              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center animate-bounce">
+                                <Plus className="w-5 h-5 text-white" />
+                              </div>
+                              <span className="font-black text-blue-600 uppercase tracking-widest text-xs">Drop to Upload</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {isUploading ? (
+                          <div className="space-y-4 animate-in fade-in duration-500">
+                            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                            <div>
+                              <p className="text-blue-600 font-black text-sm uppercase tracking-widest">Uploading Schema...</p>
+                              {selectedFile && (
+                                <p className="text-xs text-slate-400 font-bold mt-1 truncate max-w-[200px] mx-auto">
+                                  {selectedFile.name}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 group-hover:rotate-3 transition-transform">
+                              <FileJson className="w-8 h-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                            </div>
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Click to select or drag & drop</h3>
+                            <p className="text-sm text-slate-400 font-medium">Support for .JSON and .HTML template formats</p>
+                          </>
+                        )}
+                      </div>
+
+
+                      <div className="flex gap-4">
+                        <button 
+                          onClick={() => setIsUploadModalOpen(false)}
+                          className="flex-1 h-14 border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 font-black rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          onClick={() => fileInputRef.current?.click()}
+                          disabled={isUploading}
+                          className="flex-1 h-14 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-50 active:scale-95 flex items-center justify-center gap-2"
+                        >
+                          {isUploading ? "Uploading..." : (
+                            <>
+                              <Upload className="w-5 h-5" />
+                              Browse Files
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

@@ -38,3 +38,28 @@ def calculate_invoice_totals(invoice_data: dict, items: list) -> dict:
         "tax_amount": tax_amount,
         "total_amount": total_amount
     }
+
+async def recalculate_invoice_payment_status(invoice_id: str, db: AsyncSession):
+    from ..models.payment import Payment # avoid circular import if necessary, but actually it's fine here, let's just import it at top or here.
+    
+    # Sum all payments for this invoice
+    total_paid = await db.scalar(
+        select(func.sum(Payment.amount_paid))
+        .where(Payment.invoice_id == invoice_id)
+    )
+    total_paid = float(total_paid or 0.0)
+
+    invoice = await db.get(Invoice, invoice_id)
+    if not invoice:
+        return
+
+    if total_paid == 0:
+        # No payment yet — keep current status, unless we should revert from paid
+        if invoice.status in ["PAID", "PARTIALLY_PAID"]:
+            invoice.status = "SENT"
+    elif total_paid < float(invoice.total_amount):
+        invoice.status = "PARTIALLY_PAID"
+    elif total_paid >= float(invoice.total_amount):
+        invoice.status = "PAID"
+
+    await db.commit()

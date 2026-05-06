@@ -10,6 +10,7 @@ class InvoiceStatus(str, enum.Enum):
     DRAFT = "DRAFT"
     SENT = "SENT"
     VIEWED = "VIEWED"
+    PARTIALLY_PAID = "PARTIALLY_PAID"
     PAID = "PAID"
     OVERDUE = "OVERDUE"
     CANCELLED = "CANCELLED"
@@ -39,6 +40,8 @@ class Invoice(Base):
     notes: Mapped[str] = mapped_column(TEXT, nullable=True)
     footer_text: Mapped[str] = mapped_column(TEXT, nullable=True)
     pdf_url: Mapped[str] = mapped_column(TEXT, nullable=True)
+    payment_link_url: Mapped[str] = mapped_column(TEXT, nullable=True)
+    stripe_payment_link_id: Mapped[str] = mapped_column(String(255), nullable=True)
     viewed_at: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=True)
     created_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow)
     updated_at: Mapped[datetime] = mapped_column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -47,3 +50,13 @@ class Invoice(Base):
     client = relationship("Client", back_populates="invoices")
     items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")
     payments = relationship("Payment", back_populates="invoice", cascade="all, delete-orphan")
+
+    @property
+    def amount_paid(self) -> float:
+        if self.payments:
+            return sum(float(p.amount_paid) for p in self.payments)
+        return 0.0
+
+    @property
+    def balance_due(self) -> float:
+        return float(self.total_amount) - self.amount_paid

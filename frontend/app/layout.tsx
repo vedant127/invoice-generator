@@ -11,6 +11,9 @@ export const metadata: Metadata = {
 
 import Script from "next/script";
 
+import { AuthProvider } from "@/components/providers/SessionProvider";
+import { Toaster } from "react-hot-toast";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -23,7 +26,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
       </head>
       <body className={inter.className}>
-        {children}
+        <AuthProvider>
+          <Toaster position="top-center" />
+          {children}
+        </AuthProvider>
         <Script 
           src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" 
           strategy="afterInteractive"

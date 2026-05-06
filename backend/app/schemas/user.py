@@ -35,3 +35,10 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     user_id: Optional[str] = None
+
+class SocialLoginRequest(BaseModel):
+    email: EmailStr
+    full_name: str
+    provider: str
+    provider_id: str
+    image: Optional[str] = None

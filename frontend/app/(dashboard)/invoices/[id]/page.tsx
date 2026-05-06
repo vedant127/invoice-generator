@@ -2,8 +2,12 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "@/lib/api";
-import { ArrowLeft, Printer, Download, Mail, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Printer, Download, Mail, CheckCircle2, CreditCard } from "lucide-react";
 import Link from "next/link";
+import RecordPaymentModal from "@/components/invoices/RecordPaymentModal";
+import PaymentHistory from "@/components/invoices/PaymentHistory";
+import PaymentLinkButton from "@/components/invoices/PaymentLinkButton";
+import SendEmailModal from "@/components/invoices/SendEmailModal";
 import { 
   StandardPreview, 
   ModernMinimalPreview, 
@@ -37,6 +41,9 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
   const [loading, setLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState("standard");
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,7 +73,7 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
       }
     };
     fetchData();
-  }, [params.id]);
+  }, [params.id, refreshTrigger]);
 
   const handleDownload = async () => {
     if (isDownloading) return;
@@ -160,9 +167,9 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
       unit_price: item.unit_price
     })),
     subtotal: invoice.subtotal,
-    taxPercentage: 0, // Not directly in invoice model, but we have tax_amount
+    taxPercentage: invoice.tax_rate || 0,
     taxAmount: invoice.tax_amount,
-    discount: invoice.discount_amount,
+    discount: invoice.discount_value || invoice.discount_amount || 0,
     total: invoice.total_amount,
     currency: invoice.currency || "USD",
     notes: invoice.notes
@@ -190,19 +197,87 @@ export default function InvoiceViewPage({ params }: { params: { id: string } }) 
           >
             <Download className="w-4 h-4" /> {isDownloading ? "Generating..." : "Download PDF"}
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand text-white rounded-lg hover:bg-brand-light transition-colors shadow-sm" data-purpose="send-email-button">
+          <button 
+            onClick={() => setIsEmailModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand text-white rounded-lg hover:bg-brand-light transition-colors shadow-sm" 
+            data-purpose="send-email-button"
+          >
             <Mail className="w-4 h-4" /> Send via Email
           </button>
         </div>
       </nav>
 
       {/* Invoice Preview Container */}
-      <main className="max-w-5xl mx-auto py-12 px-6 flex justify-center" data-purpose="preview-area">
-        {/* A4 Invoice Page */}
-        <article className="invoice-page print-shadow-none bg-white w-full max-w-[210mm] min-h-[297mm] shadow-xl rounded-lg overflow-hidden flex flex-col" data-purpose="invoice-document">
-          <PreviewComponent data={invoiceData} />
-        </article>
+      <main className="max-w-7xl mx-auto py-12 px-6 grid grid-cols-1 xl:grid-cols-3 gap-8" data-purpose="preview-area">
+        
+        {/* Left Side: Invoice Preview */}
+        <div className="xl:col-span-2 flex justify-center">
+          <article className="invoice-page print-shadow-none bg-white w-full max-w-[210mm] min-h-[297mm] shadow-xl rounded-lg overflow-hidden flex flex-col" data-purpose="invoice-document">
+            <PreviewComponent data={invoiceData} />
+          </article>
+        </div>
+
+        {/* Right Side: Payment Management */}
+        <div className="no-print space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-6">Payment Summary</h3>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-sm font-bold text-slate-500">Total Amount</span>
+                <span className="text-base font-black text-slate-900 dark:text-white">₹{(invoice.total_amount || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
+                <span className="text-sm font-bold text-slate-500">Amount Paid</span>
+                <span className="text-base font-black text-emerald-600 dark:text-emerald-400">₹{(invoice.amount_paid || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-bold text-slate-500">Balance Due</span>
+                <span className={`text-xl font-black ${invoice.balance_due > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-slate-900 dark:text-white'}`}>
+                  ₹{Math.max(0, invoice.balance_due || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}
+                </span>
+              </div>
+            </div>
+
+            {invoice.balance_due > 0 && (
+              <>
+                <button 
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="w-full mt-6 h-12 flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 dark:text-slate-900 text-white rounded-xl font-black transition-all shadow-md active:scale-95"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Record Payment
+                </button>
+                <PaymentLinkButton 
+                  invoiceId={params.id}
+                  invoiceStatus={invoice.status}
+                  existingPaymentLink={invoice.payment_link_url}
+                />
+              </>
+            )}
+            
+            {invoice.balance_due <= 0 && (
+              <div className="w-full mt-6 h-12 flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-xl font-black">
+                <CheckCircle2 className="w-5 h-5" />
+                Fully Paid
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <PaymentHistory invoiceId={params.id} refreshTrigger={refreshTrigger} />
+          </div>
+        </div>
+
       </main>
+      
+      <RecordPaymentModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        invoiceId={params.id}
+        balanceDue={invoice.balance_due}
+        onSuccess={() => setRefreshTrigger(prev => prev + 1)}
+      />
       
       {/* CSS for print mode */}
       <style dangerouslySetInnerHTML={{__html: `

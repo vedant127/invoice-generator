@@ -96,9 +96,9 @@ export default function NewInvoicePage() {
   const [issueDate, setIssueDate] = useState(new Date().toISOString().split("T")[0]);
   const [dueDate, setDueDate] = useState(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]);
   const [currency, setCurrency] = useState("USD");
-  const [items, setItems] = useState([{ id: 1, description: "", quantity: 1, unit_price: 0 }]);
-  const [taxPercentage, setTaxPercentage] = useState(10);
-  const [discount, setDiscount] = useState(0);
+  const [items, setItems] = useState([{ id: 1, description: "", quantity: "1", unit_price: "0" }]);
+  const [taxPercentage, setTaxPercentage] = useState("10");
+  const [discount, setDiscount] = useState("0");
   const [notes, setNotes] = useState("Thank you for your business. Please make payment within 7 days. Contact us with any questions regarding this invoice or payment details.");
 
   // Generate invoice number only on the client to avoid SSR/hydration mismatch
@@ -132,7 +132,7 @@ export default function NewInvoicePage() {
   }, [clientId, clients]);
 
   // Handlers
-  const addItem = () => setItems([...items, { id: Date.now(), description: "", quantity: 1, unit_price: 0 }]);
+  const addItem = () => setItems([...items, { id: Date.now(), description: "", quantity: "1", unit_price: "0" }]);
   
   const removeItem = (id: number) => {
     if (items.length > 1) setItems(items.filter(item => item.id !== id));
@@ -143,9 +143,12 @@ export default function NewInvoicePage() {
   };
 
   // Calculations
-  const subtotal = items.reduce((acc, item) => acc + (item.quantity * item.unit_price), 0);
-  const taxAmount = (subtotal * taxPercentage) / 100;
-  const total = subtotal + taxAmount - discount;
+  const parsedTax = parseFloat(taxPercentage) || 0;
+  const parsedDiscount = parseFloat(discount) || 0;
+  
+  const subtotal = items.reduce((acc, item) => acc + ((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)), 0);
+  const taxAmount = (subtotal * parsedTax) / 100;
+  const total = subtotal + taxAmount - parsedDiscount;
 
   const handleSave = async (status: "DRAFT" | "SENT") => {
     try {
@@ -153,16 +156,27 @@ export default function NewInvoicePage() {
         alert("Please select a client.");
         return;
       }
+      
+      // Persist the selected template so the invoice view page uses it
+      try {
+        await api.patch('/api/v1/users/me', { selected_template: selectedTemplate });
+      } catch (templateErr) {
+        console.error("Failed to persist template selection:", templateErr);
+      }
+
       const payload = {
         client_id: clientId,
         status: status,
         issue_date: issueDate,
         due_date: dueDate,
         notes: notes,
+        tax_rate: parsedTax,
+        discount_value: parsedDiscount,
+        discount_type: parsedDiscount > 0 ? "FLAT" : null,
         items: items.map(i => ({
           description: i.description,
-          quantity: i.quantity,
-          unit_price: i.unit_price
+          quantity: parseFloat(i.quantity) || 0,
+          unit_price: parseFloat(i.unit_price) || 0
         }))
       };
       const res = await api.post("/api/v1/invoices/", payload);
@@ -181,11 +195,11 @@ export default function NewInvoicePage() {
     dueDate,
     clientName,
     clientAddress,
-    items,
+    items: items.map(i => ({ ...i, quantity: parseFloat(i.quantity) || 0, unit_price: parseFloat(i.unit_price) || 0 })),
     subtotal,
-    taxPercentage,
+    taxPercentage: parsedTax,
     taxAmount,
-    discount,
+    discount: parsedDiscount,
     total,
     currency,
     notes
@@ -364,7 +378,7 @@ export default function NewInvoicePage() {
                         <input 
                           type="number" min="1"
                           value={item.quantity}
-                          onChange={(e) => updateItem(item.id, "quantity", parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
                           className="w-full border border-gray-200 rounded-md px-3 py-2 text-center focus:ring-brand focus:border-brand text-sm shadow-sm" 
                         />
                       </td>
@@ -372,12 +386,12 @@ export default function NewInvoicePage() {
                         <input 
                           type="number" min="0" step="0.01"
                           value={item.unit_price}
-                          onChange={(e) => updateItem(item.id, "unit_price", parseFloat(e.target.value) || 0)}
+                          onChange={(e) => updateItem(item.id, "unit_price", e.target.value)}
                           className="w-full border border-gray-200 rounded-md px-3 py-2 focus:ring-brand focus:border-brand text-sm shadow-sm" 
                         />
                       </td>
                       <td className="px-4 py-3 font-bold text-slate-900">
-                        ${(item.quantity * item.unit_price).toFixed(2)}
+                        ${((parseFloat(item.quantity) || 0) * (parseFloat(item.unit_price) || 0)).toFixed(2)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <button onClick={() => removeItem(item.id)} className="text-rose-500 hover:text-rose-700 transition-colors bg-rose-50 p-2 rounded-md hover:bg-rose-100">
@@ -401,7 +415,7 @@ export default function NewInvoicePage() {
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Tax percentage (%)</label>
                 <input 
                   type="number" min="0" max="100"
-                  value={taxPercentage} onChange={(e) => setTaxPercentage(parseFloat(e.target.value) || 0)}
+                  value={taxPercentage} onChange={(e) => setTaxPercentage(e.target.value)}
                   className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-sm shadow-sm" 
                 />
               </div>
@@ -409,7 +423,7 @@ export default function NewInvoicePage() {
                 <label className="block text-sm font-bold text-slate-700 mb-1.5">Discount ($)</label>
                 <input 
                   type="number" min="0"
-                  value={discount} onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
+                  value={discount} onChange={(e) => setDiscount(e.target.value)}
                   className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all text-sm shadow-sm" 
                 />
               </div>
@@ -421,12 +435,12 @@ export default function NewInvoicePage() {
                 <span className="font-bold text-slate-900">${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Tax ({taxPercentage}%)</span>
+                <span className="text-slate-500">Tax ({parsedTax}%)</span>
                 <span className="font-bold text-slate-900">${taxAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Discount</span>
-                <span className="font-bold text-slate-900">-${discount.toFixed(2)}</span>
+                <span className="font-bold text-slate-900">-${parsedDiscount.toFixed(2)}</span>
               </div>
               <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
                 <span className="font-heading font-bold text-slate-900">Total</span>

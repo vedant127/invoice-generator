@@ -10,6 +10,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("ALL");
 
   useEffect(() => {
     api.get("/api/v1/invoices/").then(res => {
@@ -19,10 +20,14 @@ export default function InvoicesPage() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const filteredInvoices = invoices.filter((inv: any) => 
-    (inv.invoice_number || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (inv.client?.name || "").toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredInvoices = invoices.filter((inv: any) => {
+    const matchesSearch = (inv.invoice_number || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (inv.client?.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (activeTab === "ALL") return matchesSearch;
+    if (activeTab === "PARTIAL") return matchesSearch && inv.status === "PARTIALLY_PAID";
+    return matchesSearch && inv.status === activeTab;
+  });
 
   return (
     <div className="flex-1 overflow-y-auto p-8 lg:px-12 xl:px-16 pb-24 bg-[#F8F9FB] dark:bg-slate-950 font-sans animate-in fade-in duration-700 transition-colors">
@@ -54,7 +59,7 @@ export default function InvoicesPage() {
           {[
             { label: "Total Billed", value: `$${invoices.reduce((acc: number, inv: any) => acc + (inv.total_amount || 0), 0).toLocaleString()}`, icon: "payments", color: "blue", bg: "blue" },
             { label: "Paid", value: invoices.filter((i: any) => i.status === "PAID").length, icon: "check_circle", color: "emerald", bg: "emerald" },
-            { label: "Pending", value: invoices.filter((i: any) => i.status === "SENT" || i.status === "PENDING").length, icon: "schedule", color: "amber", bg: "amber" },
+            { label: "Pending", value: invoices.filter((i: any) => i.status === "SENT" || i.status === "PENDING" || i.status === "PARTIALLY_PAID").length, icon: "schedule", color: "amber", bg: "amber" },
             { label: "Overdue", value: invoices.filter((i: any) => i.status === "OVERDUE").length, icon: "warning", color: "red", bg: "red" },
           ].map((stat, i) => (
             <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4 transition-colors">
@@ -84,10 +89,20 @@ export default function InvoicesPage() {
                 className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl pl-12 pr-4 py-3 text-sm focus:border-blue-600 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all font-bold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-600"
               />
             </div>
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <button className="flex-1 md:flex-none h-11 flex items-center justify-center gap-2 px-5 text-sm font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">
-                <Filter className="w-4 h-4" /> Filter
-              </button>
+            <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 hide-scrollbar">
+              {['ALL', 'DRAFT', 'SENT', 'PARTIAL', 'PAID', 'OVERDUE'].map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`h-11 px-4 text-xs font-bold rounded-xl transition-all whitespace-nowrap ${
+                    activeTab === tab 
+                      ? 'bg-blue-600 text-white shadow-md' 
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -150,15 +165,17 @@ export default function InvoicesPage() {
                     <td className="px-8 py-6">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
                         inv.status === 'PAID' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' :
+                        inv.status === 'PARTIALLY_PAID' ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' :
                         inv.status === 'SENT' || inv.status === 'PENDING' ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' :
                         inv.status === 'OVERDUE' ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
                       }`}>
                         <span className={`w-1.5 h-1.5 rounded-full ${
                           inv.status === 'PAID' ? 'bg-emerald-500' :
+                          inv.status === 'PARTIALLY_PAID' ? 'bg-orange-500' :
                           inv.status === 'SENT' || inv.status === 'PENDING' ? 'bg-blue-500' :
                           inv.status === 'OVERDUE' ? 'bg-red-500' : 'bg-slate-400'
                         }`}></span>
-                        {inv.status || "DRAFT"}
+                        {inv.status === 'PARTIALLY_PAID' ? 'PARTIAL' : inv.status || "DRAFT"}
                       </span>
                     </td>
                     <td className="px-8 py-6 text-right" onClick={(e) => e.stopPropagation()}>

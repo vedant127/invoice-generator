@@ -69,6 +69,7 @@ export default function DashboardPage() {
             paid_invoices: invs.filter((i: any) => i.status === "PAID").length,
             overdue_invoices: invs.filter((i: any) => i.status === "OVERDUE").length,
             sent_invoices: invs.filter((i: any) => i.status === "SENT" || i.status === "PENDING").length,
+            partially_paid_invoices: invs.filter((i: any) => i.status === "PARTIALLY_PAID").length,
             draft_invoices: invs.filter((i: any) => i.status === "DRAFT").length,
             revenue_growth: "+12%",
           });
@@ -232,6 +233,25 @@ export default function DashboardPage() {
             </div>
             <p className="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mb-2">Paid Invoices</p>
             <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{stats.paid_invoices.toLocaleString()}</h3>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md group">
+            <div className="flex justify-between items-start mb-3">
+              <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:bg-amber-600 group-hover:text-white transition-all">
+                <span className="material-symbols-outlined">schedule</span>
+              </div>
+            </div>
+            <p className="text-slate-500 dark:text-slate-400 text-[11px] font-black uppercase tracking-widest mb-2">Pending Invoices</p>
+            <div className="flex flex-col gap-1.5 mt-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500 font-medium text-[13px]">Sent/Viewed:</span>
+                <span className="font-bold text-slate-900 dark:text-white">{stats.sent_invoices}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-orange-500 font-medium text-[13px]">Partially Paid:</span>
+                <span className="font-bold text-orange-600 dark:text-orange-400">{(stats as any).partially_paid_invoices || 0}</span>
+              </div>
+            </div>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl p-7 border border-slate-200 dark:border-slate-800 shadow-sm transition-all duration-300 hover:shadow-md group relative overflow-hidden">

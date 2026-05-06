@@ -50,7 +50,10 @@ class InvoiceOut(InvoiceBase):
     discount_amount: float
     tax_amount: float
     total_amount: float
+    amount_paid: float = 0.0
+    balance_due: float = 0.0
     pdf_url: Optional[str] = None
+    payment_link_url: Optional[str] = None
     created_at: datetime
     items: List[InvoiceItemOut]
     client: Optional[ClientOut] = None

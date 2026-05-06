@@ -15,7 +15,12 @@ import {
   Download,
   Layers,
   CreditCard,
-  LogOut
+  LogOut,
+  Search as SearchIcon,
+  X as CloseIcon,
+  User,
+  FileText as InvoiceIcon,
+  ChevronRight
 } from "lucide-react";
 
 export default function DashboardLayout({
@@ -39,6 +44,10 @@ export default function DashboardLayout({
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<{ clients: any[], invoices: any[] }>({ clients: [], invoices: [] });
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [data, setData] = useState<{ clients: any[], invoices: any[] }>({ clients: [], invoices: [] });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -56,7 +65,43 @@ export default function DashboardLayout({
           router.push("/login");
         }
       });
+
+    // Prefetch search data
+    const fetchData = async () => {
+      try {
+        const [cRes, iRes] = await Promise.all([
+          api.get("/api/v1/clients/"),
+          api.get("/api/v1/invoices/")
+        ]);
+        setData({ clients: cRes.data, invoices: iRes.data });
+      } catch (err) {
+        console.error("Search data fetch error", err);
+      }
+    };
+    fetchData();
   }, [router]);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults({ clients: [], invoices: [] });
+      setIsSearchOpen(false);
+      return;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filteredClients = data.clients.filter(c => 
+      c.name?.toLowerCase().includes(query) || 
+      c.email?.toLowerCase().includes(query)
+    ).slice(0, 4);
+
+    const filteredInvoices = data.invoices.filter(i => 
+      i.id?.toLowerCase().includes(query) || 
+      i.client?.name?.toLowerCase().includes(query)
+    ).slice(0, 4);
+
+    setSearchResults({ clients: filteredClients, invoices: filteredInvoices });
+    setIsSearchOpen(true);
+  }, [searchQuery, data]);
 
   // Dark mode effect
   useEffect(() => {
@@ -102,7 +147,7 @@ export default function DashboardLayout({
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-200">
             <span className="material-symbols-outlined text-xl">layers</span>
           </div>
-          <span className={`text-xl font-bold tracking-tighter ${isDarkMode ? 'text-white' : 'text-on-surface'}`}>Finnie</span>
+          <span className={`text-xl font-bold tracking-tighter ${isDarkMode ? 'text-white' : 'text-on-surface'}`}>Invoice Generator</span>
         </div>
 
         <nav className="flex-1 px-4 space-y-1.5 mt-4">
@@ -158,12 +203,89 @@ export default function DashboardLayout({
               {navItems.find(i => i.href === pathname)?.name || "Dashboard"}
             </h1>
             <div className="relative group hidden md:block">
-              <span className={`material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[20px] transition-colors ${isDarkMode ? 'text-slate-600 group-focus-within:text-blue-400' : 'text-slate-400 group-focus-within:text-blue-600'}`}>search</span>
+              <SearchIcon className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 transition-colors ${isDarkMode ? 'text-slate-600 group-focus-within:text-blue-400' : 'text-slate-400 group-focus-within:text-blue-600'}`} />
               <input 
-                className={`pl-10 pr-4 py-1.5 rounded-xl text-sm w-64 outline-none transition-all font-medium ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/20' : 'bg-slate-50 border border-slate-100 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500'}`} 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.trim() && setIsSearchOpen(true)}
+                className={`pl-10 pr-4 py-1.5 rounded-xl text-sm w-80 outline-none transition-all font-medium ${isDarkMode ? 'bg-slate-900 border-slate-800 text-white placeholder:text-slate-600 focus:ring-2 focus:ring-blue-500/20' : 'bg-slate-50 border border-slate-100 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500'}`} 
                 placeholder="Search invoices, clients..." 
                 type="text"
               />
+
+              {/* Search Results Dropdown */}
+              {isSearchOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setIsSearchOpen(false)}></div>
+                  <div className={`absolute top-full left-0 mt-2 w-full min-w-[320px] rounded-2xl shadow-2xl border p-2 z-20 animate-in fade-in slide-in-from-top-2 duration-200 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-100'}`}>
+                    
+                    {searchResults.clients.length === 0 && searchResults.invoices.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <SearchIcon className="w-5 h-5 text-slate-400" />
+                        </div>
+                        <p className="text-sm font-bold text-slate-400">No results for "{searchQuery}"</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4 p-2 max-h-[400px] overflow-y-auto">
+                        {searchResults.clients.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-2">Clients</p>
+                            {searchResults.clients.map(client => (
+                              <Link 
+                                key={client.id}
+                                href={`/clients?id=${client.id}`}
+                                onClick={() => { setIsSearchOpen(false); setSearchQuery(""); }}
+                                className={`flex items-center justify-between p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                    {client.name?.[0] || "C"}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{client.name}</p>
+                                    <p className="text-[10px] text-slate-400">{client.email}</p>
+                                  </div>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-slate-300" />
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+
+                        {searchResults.invoices.length > 0 && (
+                          <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-2">Invoices</p>
+                            {searchResults.invoices.map(invoice => (
+                              <Link 
+                                key={invoice.id}
+                                href={`/invoices?id=${invoice.id}`}
+                                onClick={() => { setIsSearchOpen(false); setSearchQuery(""); }}
+                                className={`flex items-center justify-between p-2 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-slate-800' : 'hover:bg-slate-50'}`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold text-xs">
+                                    <InvoiceIcon className="w-4 h-4" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">#{invoice.id.slice(0, 8)}</p>
+                                    <p className="text-[10px] text-slate-400">{invoice.client?.name} • ${invoice.total_amount?.toLocaleString()}</p>
+                                  </div>
+                                </div>
+                                <span className={`text-[9px] font-black px-2 py-1 rounded-full uppercase tracking-tighter ${
+                                  invoice.status === 'PAID' ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
+                                }`}>
+                                  {invoice.status}
+                                </span>
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
