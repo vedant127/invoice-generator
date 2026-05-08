@@ -3,12 +3,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from . import models
 from .routers import auth, users, clients, invoices, payments, reports
+from .database import engine, Base
+import asyncio
 
 app = FastAPI(
     title=settings.APP_NAME,
     description="Production-grade Invoice Generator API",
     version="1.0.0",
 )
+
+@app.on_event("startup")
+async def startup():
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
 # CORS Middleware
 app.add_middleware(
