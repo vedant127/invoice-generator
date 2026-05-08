@@ -50,7 +50,6 @@ const config = {
         "on-error-container": "#93000a",
         "surface-container-high": "#e7e7f3",
         "outline-variant": "#c3c6d7",
-        "secondary": "#545f73",
         "on-secondary-fixed-variant": "#3c475a",
         "error-container": "#ffdad6",
         "tertiary-fixed-dim": "#ffb596",
