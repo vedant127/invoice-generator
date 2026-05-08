@@ -36,7 +36,7 @@ export default function CustomPaymentPage({ params }: { params: { id: string } }
     return <div className="min-h-screen flex items-center justify-center bg-[#f9f9ff] dark:bg-slate-950 text-slate-500">Invoice not found.</div>;
   }
 
-  const handlePayClick = (e: React.MouseEvent) => {
+  const handlePayClick = (e: React.FormEvent) => {
     e.preventDefault();
     if (invoice.payment_link_url) {
       window.location.href = invoice.payment_link_url;
