@@ -2,8 +2,12 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sess
 from sqlalchemy.orm import DeclarativeBase
 from .config import settings
 
-# PostgreSQL configuration
+# PostgreSQL configuration - Ensure the URL uses postgresql+asyncpg for SQLAlchemy async support
 SQLALCHEMY_DATABASE_URL = settings.DATABASE_URL
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+elif SQLALCHEMY_DATABASE_URL.startswith("postgresql://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
 
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL, 

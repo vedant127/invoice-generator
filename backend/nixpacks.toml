@@ -1,0 +1,10 @@
+[phases.setup]
+# This installs the system libraries needed for WeasyPrint (PDF generation)
+aptPkgs = ["libpango-1.0-0", "libharfbuzz0b", "libpangoft2-1.0-0", "libpangocairo-1.0-0"]
+
+[phases.build]
+dependsOn = ["setup"]
+cmds = ["pip install -r requirements.txt"]
+
+[start]
+cmd = "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
