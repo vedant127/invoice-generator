@@ -103,7 +103,7 @@ const CATEGORIES = ["ALL TEMPLATES", "FORMAL", "CORPORATE", "CREATIVE", "MODERN"
 const THUMB_W = 284;
 const THUMB_H = 210;
 
-function InvoiceThumbnail({ template }) {
+function InvoiceThumbnail({ template }: { template: any }) {
   const Preview = template.Preview;
   return (
     <div
@@ -135,7 +135,12 @@ function InvoiceThumbnail({ template }) {
 }
 
 // ─── Template Card ─────────────────────────────────────────────────────────
-function TemplateCard({ template, isSelected, onSelect, onGenerate }) {
+function TemplateCard({ template, isSelected, onSelect, onGenerate }: { 
+  template: any, 
+  isSelected: boolean, 
+  onSelect: (id: string) => void, 
+  onGenerate: () => void 
+}) {
   return (
     <div
       onClick={() => onSelect(template.id)}
