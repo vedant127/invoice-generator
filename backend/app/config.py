@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+from pydantic import validator
+from typing import List, Union, Optional
 
 class Settings(BaseSettings):
     APP_NAME: str = "InvoiceGenerator"
@@ -28,6 +29,13 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: List[str] = ["*"]
+    @validator("ALLOWED_ORIGINS", pre=True)
+    def assemble_cors_origins(cls, v: str | List[str]) -> List[str] | str:
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, (list, str)):
+            return v
+        return ["*"]
 
     # Stripe
     STRIPE_SECRET_KEY: str = ""
