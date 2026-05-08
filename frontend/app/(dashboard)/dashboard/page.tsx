@@ -34,6 +34,7 @@ export default function DashboardPage() {
     paid_invoices: 0,
     overdue_invoices: 0,
     sent_invoices: 0,
+    partially_paid_invoices: 0,
     draft_invoices: 0,
     revenue_growth: "+12%",
   });
@@ -249,7 +250,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-orange-500 font-medium text-[13px]">Partially Paid:</span>
-                <span className="font-bold text-orange-600 dark:text-orange-400">{(stats as any).partially_paid_invoices || 0}</span>
+                <span className="font-bold text-orange-600 dark:text-orange-400">{stats.partially_paid_invoices || 0}</span>
               </div>
             </div>
           </div>
